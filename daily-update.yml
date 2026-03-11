@@ -1,0 +1,79 @@
+name: 📡 정부 지원금 매일 자동 업데이트
+
+on:
+  # 매일 한국시간 오전 6시에 자동 실행 (UTC 21:00 = KST 06:00)
+  schedule:
+    - cron: '0 21 * * *'
+
+  # 수동 실행도 가능
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 코드 체크아웃
+      - name: 📥 코드 체크아웃
+        uses: actions/checkout@v4
+
+      # 2) Python 설정
+      - name: 🐍 Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 3) 의존성 설치
+      - name: 📦 패키지 설치
+        run: pip install requests
+
+      # 4) 데이터 수집 스크립트 실행
+      - name: 📡 API 데이터 수집 및 HTML 생성
+        env:
+          BIZINFO_API_KEY: ${{ secrets.BIZINFO_API_KEY }}
+          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
+        run: python scripts/fetch_data.py
+
+      # 5) 변경사항 커밋 & 푸시
+      - name: 💾 변경사항 저장
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data.json index.html
+          git diff --staged --quiet || git commit -m "📡 자동 업데이트: $(date +'%Y-%m-%d %H:%M') KST"
+          git push
+
+  # GitHub Pages 배포
+  deploy:
+    needs: update-data
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 📥 코드 체크아웃
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: 🔄 최신 변경사항 가져오기
+        run: git pull origin main
+
+      - name: 📄 GitHub Pages 설정
+        uses: actions/configure-pages@v4
+
+      - name: 📦 아티팩트 업로드
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: 🚀 GitHub Pages 배포
+        id: deployment
+        uses: actions/deploy-pages@v4
