@@ -176,34 +176,41 @@ def fetch_bizinfo():
 def fetch_subsidy24():
     """복지로 중앙부처복지서비스 API에서 복지 정보 수집"""
     if not DATA_GO_KR_API_KEY:
-        print("⚠️  DATA_GO_KR_API_KEY가 설정되지 않았습니다. 복지서비스 API를 건너뜁니다.")
+        print("⚠️  DATA_GO_KR_API_KEY가 설정되지 않았습니다. 보조금24 API를 건너뜁니다.")
         return []
+    import xml.etree.ElementTree as ET
     programs = []
     url = "https://apis.data.go.kr/B554287/NationalWelfareInformationsV001/NationalWelfarelistV001"
     for page in range(1, 4):
-        params = {"ServiceKey": DATA_GO_KR_API_KEY, "numOfRows": 100, "pageNo": page}
         try:
-            resp = requests.get(url, params=params, timeout=30)
+            resp = requests.get(url, params={"ServiceKey": DATA_GO_KR_API_KEY, "numOfRows": 100, "pageNo": page}, timeout=30)
             if resp.status_code != 200:
                 print(f"  ❌ 복지서비스 API 오류: {resp.status_code}")
                 break
-            import xml.etree.ElementTree as ET
             root = ET.fromstring(resp.text)
             items = root.findall('.//servList')
             if not items:
                 items = root.findall('.//item')
-          if not items:
+            if not items:
+                items = root.findall('.//')
+            found = []
+            for el in root.iter():
+                if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
+                    found.append(el)
+            if not found and not items:
                 print(f"  ⚠️ 복지서비스 페이지 {page}: 데이터 없음")
                 print(f"  🔍 응답 앞부분: {resp.text[:500]}")
                 break
-            for item in items:
+            use_items = found if found else items
+            count = 0
+            for item in use_items:
                 title = (item.findtext('servNm') or item.findtext('wlfareInfoNm') or '').strip()
+                if not title:
+                    continue
                 org = (item.findtext('jurMnofNm') or item.findtext('ministryNm') or '').strip()
                 desc = (item.findtext('servDgst') or item.findtext('wlfareInfoOutline') or '').strip()
                 target = (item.findtext('trgterIndvdlNm') or '').strip()
                 svc_id = (item.findtext('servId') or '').strip()
-                if not title:
-                    continue
                 detail_url = f"https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId={svc_id}" if svc_id else "https://www.bokjiro.go.kr"
                 programs.append({
                     "title": title, "org": org if org else "보건복지부",
@@ -212,16 +219,15 @@ def fetch_subsidy24():
                     "amount": "공고문 참조", "deadline": "상시", "status": "상시접수",
                     "description": desc[:200] if desc else f"{org} 복지서비스",
                     "target": target if target else "공고문 참조",
-                    "url": detail_url,
-                    "isNew": True, "views": 0,
+                    "url": detail_url, "isNew": True, "views": 0,
                     "source": "복지로 API", "verified": True, "fetchDate": TODAY,
                 })
-            print(f"  📄 복지서비스 페이지 {page}: {len(items)}건 수집")
+                count += 1
+            print(f"  📄 복지서비스 페이지 {page}: {count}건 수집")
         except Exception as e:
             print(f"  ❌ 복지서비스 API 오류: {e}")
             break
     return programs
-
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # API 3: 온통청년 (youthcenter.go.kr)
