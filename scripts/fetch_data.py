@@ -197,6 +197,10 @@ def fetch_subsidy24():
             for el in root.iter():
                 if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
                     found.append(el)
+          found = []
+            for el in root.iter():
+                if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
+                    found.append(el)
             if not found:
                 tags = set()
                 for el in root.iter():
