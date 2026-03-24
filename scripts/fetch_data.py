@@ -193,10 +193,16 @@ def fetch_subsidy24():
                 items = root.findall('.//item')
             if not items:
                 items = root.findall('.//')
-            found = []
+          found = []
             for el in root.iter():
                 if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
                     found.append(el)
+            if not found:
+                tags = set()
+                for el in root.iter():
+                    if el.text and el.text.strip():
+                        tags.add(el.tag)
+                print(f"  🔍 XML 태그 목록: {sorted(tags)[:30]}")
             if not found and not items:
                 print(f"  ⚠️ 복지서비스 페이지 {page}: 데이터 없음")
                 print(f"  🔍 응답 앞부분: {resp.text[:500]}")
