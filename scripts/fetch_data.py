@@ -5,13 +5,17 @@
 
 사용하는 API:
 1. 기업마당(bizinfo.go.kr) - 중소벤처기업부 지원사업 공고
-2. 공공데이터포털 보조금24 API - 정부 보조금/복지 서비스
+2. 복지로 중앙부처복지서비스 API - 복지 서비스
+3. 온통청년(youthcenter.go.kr) - 청년 정책
+4. HRD-Net(work24.go.kr) - 직업훈련
+5. 지자체 크롤링 - 기업마당 지역필터
 """
 
 import requests
 import json
 import os
 import re
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -20,7 +24,7 @@ from pathlib import Path
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BIZINFO_API_KEY = os.environ.get("BIZINFO_API_KEY", "")
 DATA_GO_KR_API_KEY = os.environ.get("DATA_GO_KR_API_KEY", "")
-YOUTH_API_KEY = os.environ.get("YOUTH_API_KEY", "")  # 온통청년 API
+YOUTH_API_KEY = os.environ.get("YOUTH_API_KEY", "")
 
 TODAY = datetime.now().strftime("%Y%m%d")
 THIRTY_DAYS_AGO = (datetime.now() - timedelta(days=30)).strftime("%Y%m%d")
@@ -42,8 +46,8 @@ CATEGORY_KEYWORDS = {
     "education": ["교육", "훈련", "배움", "디지털트레이닝", "KDT", "직업훈련", "인재양성"],
 }
 
+
 def classify_category(title, description=""):
-    """제목과 설명으로 카테고리 자동 분류"""
     text = f"{title} {description}".lower()
     scores = {}
     for cat, keywords in CATEGORY_KEYWORDS.items():
@@ -52,29 +56,16 @@ def classify_category(title, description=""):
             scores[cat] = score
     if scores:
         return max(scores, key=scores.get)
-    return "small_biz"  # 기본값
+    return "small_biz"
 
 
 def detect_region(title, org):
-    """기관명/제목에서 지역 추출"""
     regions = {
-        "서울": ["서울"],
-        "부산": ["부산"],
-        "대구": ["대구"],
-        "인천": ["인천"],
-        "광주": ["광주"],
-        "대전": ["대전"],
-        "울산": ["울산"],
-        "세종": ["세종"],
-        "경기": ["경기"],
-        "강원": ["강원"],
-        "충북": ["충북", "충청북"],
-        "충남": ["충남", "충청남"],
-        "전북": ["전북", "전라북"],
-        "전남": ["전남", "전라남"],
-        "경북": ["경북", "경상북"],
-        "경남": ["경남", "경상남"],
-        "제주": ["제주"],
+        "서울": ["서울"], "부산": ["부산"], "대구": ["대구"], "인천": ["인천"],
+        "광주": ["광주"], "대전": ["대전"], "울산": ["울산"], "세종": ["세종"],
+        "경기": ["경기"], "강원": ["강원"], "충북": ["충북", "충청북"],
+        "충남": ["충남", "충청남"], "전북": ["전북", "전라북"], "전남": ["전남", "전라남"],
+        "경북": ["경북", "경상북"], "경남": ["경남", "경상남"], "제주": ["제주"],
     }
     text = f"{title} {org}"
     for region, keywords in regions.items():
@@ -85,7 +76,6 @@ def detect_region(title, org):
 
 
 def detect_status(deadline_str):
-    """마감일로 접수 상태 판단"""
     if not deadline_str or deadline_str in ["상시", "미정", ""]:
         return "상시접수"
     try:
@@ -105,15 +95,12 @@ def detect_status(deadline_str):
 # API 1: 기업마당 (bizinfo.go.kr)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_bizinfo():
-    """기업마당 API에서 지원사업 공고 수집"""
     if not BIZINFO_API_KEY:
         print("⚠️  BIZINFO_API_KEY가 설정되지 않았습니다. 기업마당 API를 건너뜁니다.")
         return []
-
     programs = []
     url = "https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do"
-
-    for page in range(1, 6):  # 최대 5페이지
+    for page in range(1, 6):
         params = {
             "crtfcKey": BIZINFO_API_KEY,
             "dataType": "json",
@@ -122,16 +109,13 @@ def fetch_bizinfo():
             "searchSDate": THIRTY_DAYS_AGO,
             "searchEDate": TODAY,
         }
-
         try:
             resp = requests.get(url, params=params, timeout=30)
             resp.raise_for_status()
             data = resp.json()
-
             items = data.get("jsonArray", [])
             if not items:
                 break
-
             for item in items:
                 title = item.get("pblancNm", "").strip()
                 org = item.get("jrsdInsttNm", "").strip()
@@ -139,13 +123,10 @@ def fetch_bizinfo():
                 deadline = item.get("reqstEndDe", "").strip().replace("-", "")
                 detail_url = item.get("detailUrl", "")
                 target = item.get("trgetNm", "").strip()
-
                 if not title:
                     continue
-
                 programs.append({
-                    "title": title,
-                    "org": org,
+                    "title": title, "org": org,
                     "category": classify_category(title, description),
                     "region": detect_region(title, org),
                     "amount": "공고문 참조",
@@ -154,120 +135,161 @@ def fetch_bizinfo():
                     "description": description if description else f"{org}에서 진행하는 {title}",
                     "target": target if target else "공고문 참조",
                     "url": detail_url if detail_url else "https://www.bizinfo.go.kr",
-                    "isNew": True,
-                    "views": 0,
-                    "source": "기업마당 API",
-                    "verified": True,
-                    "fetchDate": TODAY,
+                    "isNew": True, "views": 0,
+                    "source": "기업마당 API", "verified": True, "fetchDate": TODAY,
                 })
-
             print(f"  📄 기업마당 페이지 {page}: {len(items)}건 수집")
-
         except requests.exceptions.RequestException as e:
             print(f"  ❌ 기업마당 API 오류 (페이지 {page}): {e}")
             break
-
     return programs
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# API 2: 공공데이터포털 보조금24 서비스 목록
+# API 2: 복지로 중앙부처복지서비스 API
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_subsidy24():
-    """복지로 중앙부처복지서비스 API에서 복지 정보 수집"""
     if not DATA_GO_KR_API_KEY:
-        print("⚠️  DATA_GO_KR_API_KEY가 설정되지 않았습니다. 보조금24 API를 건너뜁니다.")
+        print("⚠️  DATA_GO_KR_API_KEY가 설정되지 않았습니다. 복지서비스 API를 건너뜁니다.")
         return []
-    import xml.etree.ElementTree as ET
     programs = []
     url = "https://apis.data.go.kr/B554287/NationalWelfareInformationsV001/NationalWelfarelistV001"
     for page in range(1, 4):
         try:
-            resp = requests.get(url, params={"ServiceKey": DATA_GO_KR_API_KEY, "numOfRows": 100, "pageNo": page}, timeout=30)
+            params = {"ServiceKey": DATA_GO_KR_API_KEY, "numOfRows": 100, "pageNo": page}
+            resp = requests.get(url, params=params, timeout=30)
             if resp.status_code != 200:
-                print(f"  ❌ 복지서비스 API 오류: {resp.status_code}")
+                print(f"  ❌ 복지서비스 API HTTP {resp.status_code}")
                 break
+            # XML 파싱
             root = ET.fromstring(resp.text)
+            # 에러 응답 체크
+            err_msg = root.findtext('.//returnAuthMsg') or root.findtext('.//resultMsg')
+            if err_msg and 'SERVICE_KEY' in str(err_msg).upper():
+                print(f"  ❌ 인증키 오류: {err_msg}")
+                break
+            # 다양한 태그명으로 검색 시도
             items = root.findall('.//servList')
             if not items:
                 items = root.findall('.//item')
             if not items:
-                items = root.findall('.//')
-          found = []
-            for el in root.iter():
-                if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
-                    found.append(el)
-          found = []
-            for el in root.iter():
-                if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
-                    found.append(el)
-            found = []
-            for el in root.iter():
-                if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
-                    found.append(el)
-            if not found and not items:
+                items = root.findall('.//welfareList')
+            if not items:
+                items = root.findall('.//row')
+            # 그래도 없으면 태그 구조 디버깅
+            if not items:
+                all_tags = set()
+                for el in root.iter():
+                    if el.text and el.text.strip() and len(el.text.strip()) > 2:
+                        all_tags.add(el.tag)
+                print(f"  🔍 XML 태그 목록: {sorted(all_tags)[:30]}")
+                # 태그 이름에 'serv' 또는 'wlfare'가 포함된 것 찾기
+                for tag in all_tags:
+                    if 'serv' in tag.lower() or 'wlfare' in tag.lower() or 'welfare' in tag.lower():
+                        items = root.findall(f'.//{tag}')
+                        if items:
+                            print(f"  🔍 발견된 태그: {tag} ({len(items)}건)")
+                            break
+            if not items:
                 print(f"  ⚠️ 복지서비스 페이지 {page}: 데이터 없음")
                 print(f"  🔍 응답 앞부분: {resp.text[:500]}")
                 break
-            use_items = found if found else items
             count = 0
-            for item in use_items:
-                title = (item.findtext('servNm') or item.findtext('wlfareInfoNm') or '').strip()
+            for item in items:
+                # 다양한 태그명 시도
+                title = ''
+                for tag in ['servNm', 'wlfareInfoNm', 'SERV_NM', 'servNM']:
+                    title = (item.findtext(tag) or '').strip()
+                    if title:
+                        break
+                if not title:
+                    # 자식 요소 중 텍스트가 긴 것을 제목으로 추정
+                    for child in item:
+                        txt = (child.text or '').strip()
+                        if len(txt) > 5 and not txt.isdigit():
+                            title = txt
+                            break
                 if not title:
                     continue
-                org = (item.findtext('jurMnofNm') or item.findtext('ministryNm') or '').strip()
-                desc = (item.findtext('servDgst') or item.findtext('wlfareInfoOutline') or '').strip()
-                target = (item.findtext('trgterIndvdlNm') or '').strip()
-                svc_id = (item.findtext('servId') or '').strip()
-                detail_url = f"https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId={svc_id}" if svc_id else "https://www.bokjiro.go.kr"
+                org = ''
+                for tag in ['jurMnofNm', 'ministryNm', 'JURY_MNOF_NM']:
+                    org = (item.findtext(tag) or '').strip()
+                    if org:
+                        break
+                desc = ''
+                for tag in ['servDgst', 'wlfareInfoOutline', 'SERV_DGST']:
+                    desc = (item.findtext(tag) or '').strip()
+                    if desc:
+                        break
+                target = ''
+                for tag in ['trgterIndvdlNm', 'TRGTER_INDVDL_NM']:
+                    target = (item.findtext(tag) or '').strip()
+                    if target:
+                        break
+                svc_id = ''
+                for tag in ['servId', 'SERV_ID', 'wlfareInfoId']:
+                    svc_id = (item.findtext(tag) or '').strip()
+                    if svc_id:
+                        break
+                if svc_id:
+                    detail_url = f"https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId={svc_id}"
+                else:
+                    detail_url = "https://www.bokjiro.go.kr"
                 programs.append({
-                    "title": title, "org": org if org else "보건복지부",
+                    "title": title,
+                    "org": org if org else "보건복지부",
                     "category": classify_category(title, desc),
                     "region": detect_region(title, org),
-                    "amount": "공고문 참조", "deadline": "상시", "status": "상시접수",
+                    "amount": "공고문 참조",
+                    "deadline": "상시",
+                    "status": "상시접수",
                     "description": desc[:200] if desc else f"{org} 복지서비스",
                     "target": target if target else "공고문 참조",
-                    "url": detail_url, "isNew": True, "views": 0,
+                    "url": detail_url,
+                    "isNew": True, "views": 0,
                     "source": "복지로 API", "verified": True, "fetchDate": TODAY,
                 })
                 count += 1
-                if count == 0: print(f"  🔍 태그: {[el.tag for el in root.iter()][:20]}")
             print(f"  📄 복지서비스 페이지 {page}: {count}건 수집")
         except Exception as e:
             print(f"  ❌ 복지서비스 API 오류: {e}")
             break
     return programs
 
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # API 3: 온통청년 (youthcenter.go.kr)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_youth():
-    """온통청년 API에서 청년 정책 수집"""
     if not YOUTH_API_KEY:
         print("⚠️  YOUTH_API_KEY 미설정 → 온통청년 건너뜀")
         return []
     programs = []
     url = "https://www.youthcenter.go.kr/opi/youthPlcyList.do"
-    biz_types = [("023010","일자리"),("023020","주거"),("023030","교육"),("023040","복지문화"),("023050","참여권리")]
+    biz_types = [("023010", "일자리"), ("023020", "주거"), ("023030", "교육"), ("023040", "복지문화"), ("023050", "참여권리")]
     for biz_code, biz_name in biz_types:
         try:
-            resp = requests.get(url, params={"openApiVlak":YOUTH_API_KEY,"display":30,"pageIndex":1,"bizTycdSel":biz_code}, timeout=30)
+            resp = requests.get(url, params={"openApiVlak": YOUTH_API_KEY, "display": 30, "pageIndex": 1, "bizTycdSel": biz_code}, timeout=30)
             resp.raise_for_status()
             data = resp.json()
             items = data.get("youthPolicy", [])
-            cat_map = {"일자리":"employment","주거":"welfare","교육":"education","복지문화":"welfare","참여권리":"welfare"}
+            cat_map = {"일자리": "employment", "주거": "welfare", "교육": "education", "복지문화": "welfare", "참여권리": "welfare"}
             for item in items:
-                title = item.get("polyBizSjnm","").strip()
-                if not title: continue
-                org = item.get("cnsgNmor","온통청년").strip()
-                desc = item.get("polyItcnCn","").strip()
+                title = item.get("polyBizSjnm", "").strip()
+                if not title:
+                    continue
+                org = item.get("cnsgNmor", "온통청년").strip()
+                desc = item.get("polyItcnCn", "").strip()
                 programs.append({
-                    "title":title, "org":org, "category":cat_map.get(biz_name,"welfare"),
-                    "region":detect_region(title,org), "amount":"공고문 참조",
-                    "deadline":"상시", "status":"접수중",
-                    "description":desc[:200] if desc else f"청년 {biz_name} 정책",
-                    "target":item.get("ageInfo","청년"), "url":item.get("rqutUrla","") or item.get("rfcSiteUrla1","") or "https://www.youthcenter.go.kr",
-                    "isNew":True, "views":0, "source":f"온통청년 ({biz_name})", "verified":True, "fetchDate":TODAY,
+                    "title": title, "org": org,
+                    "category": cat_map.get(biz_name, "welfare"),
+                    "region": detect_region(title, org),
+                    "amount": "공고문 참조", "deadline": "상시", "status": "접수중",
+                    "description": desc[:200] if desc else f"청년 {biz_name} 정책",
+                    "target": item.get("ageInfo", "청년"),
+                    "url": item.get("rqutUrla", "") or item.get("rfcSiteUrla1", "") or "https://www.youthcenter.go.kr",
+                    "isNew": True, "views": 0,
+                    "source": f"온통청년 ({biz_name})", "verified": True, "fetchDate": TODAY,
                 })
             print(f"  📄 온통청년 [{biz_name}]: {len(items)}건")
         except Exception as e:
@@ -279,36 +301,50 @@ def fetch_youth():
 # API 4: HRD-Net 직업훈련 (고용24)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_hrdnet():
-    """HRD-Net에서 주요 직업훈련 과정 정보 수집"""
     if not DATA_GO_KR_API_KEY:
         print("⚠️  DATA_GO_KR_API_KEY 필요 → HRD-Net 건너뜀")
         return []
     programs = []
-    train_types = [("C0061","K-디지털트레이닝"),("C0054","국민내일배움카드"),("C0055","국가기간전략산업")]
+    train_types = [("C0061", "K-디지털트레이닝"), ("C0054", "국민내일배움카드"), ("C0055", "국가기간전략산업")]
     for tr_code, tr_name in train_types:
         try:
             url = "https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do"
             sd = f"{THIRTY_DAYS_AGO[:4]}-{THIRTY_DAYS_AGO[4:6]}-{THIRTY_DAYS_AGO[6:]}"
             ed = f"{TODAY[:4]}-{TODAY[4:6]}-{TODAY[6:]}"
-            resp = requests.get(url, params={"authKey":DATA_GO_KR_API_KEY,"returnType":"JSON","outType":"1","pageNum":1,"pageSize":20,"srchTraStDt":sd,"srchTraEndDt":ed,"sort":"ASC","sortCol":"TRNG_BGDE","crseTracseSe":tr_code}, timeout=30)
+            resp = requests.get(url, params={
+                "authKey": DATA_GO_KR_API_KEY, "returnType": "JSON", "outType": "1",
+                "pageNum": 1, "pageSize": 20,
+                "srchTraStDt": sd, "srchTraEndDt": ed,
+                "sort": "ASC", "sortCol": "TRNG_BGDE", "crseTracseSe": tr_code,
+            }, timeout=30)
             data = resp.json()
             items = data.get("srchList", data.get("resultList", []))
-            if not isinstance(items, list): items = []
+            if not isinstance(items, list):
+                items = []
             for item in items:
-                title = item.get("trprNm",item.get("subTitle","")).strip()
-                if not title: continue
-                inst = item.get("trainstCstNm",item.get("instNm","")).strip()
-                addr = item.get("addr1","").strip()
-                end_dt = item.get("traEndDate",item.get("trngEndde","")).replace("-","")
-                cost = item.get("courseMan",item.get("courseMn",""))
-                cost_str = f"훈련비 {int(cost):,}원" if cost else "공고문 참조"
+                title = item.get("trprNm", item.get("subTitle", "")).strip()
+                if not title:
+                    continue
+                inst = item.get("trainstCstNm", item.get("instNm", "")).strip()
+                addr = item.get("addr1", "").strip()
+                end_dt = item.get("traEndDate", item.get("trngEndde", "")).replace("-", "")
+                cost = item.get("courseMan", item.get("courseMn", ""))
+                try:
+                    cost_str = f"훈련비 {int(cost):,}원" if cost else "공고문 참조"
+                except:
+                    cost_str = "공고문 참조"
                 programs.append({
-                    "title":f"[{tr_name}] {title}", "org":inst or "HRD-Net", "category":"education",
-                    "region":detect_region(addr,inst), "amount":cost_str,
-                    "deadline":end_dt if end_dt else "상시", "status":detect_status(end_dt),
-                    "description":f"{tr_name} 과정. {inst} 운영." + (f" {addr}" if addr else ""),
-                    "target":"국민내일배움카드 발급자", "url":"https://hrd.work24.go.kr",
-                    "isNew":True, "views":0, "source":f"HRD-Net ({tr_name})", "verified":True, "fetchDate":TODAY,
+                    "title": f"[{tr_name}] {title}", "org": inst or "HRD-Net",
+                    "category": "education",
+                    "region": detect_region(addr, inst),
+                    "amount": cost_str,
+                    "deadline": end_dt if end_dt else "상시",
+                    "status": detect_status(end_dt),
+                    "description": f"{tr_name} 과정. {inst} 운영." + (f" {addr}" if addr else ""),
+                    "target": "국민내일배움카드 발급자",
+                    "url": "https://hrd.work24.go.kr",
+                    "isNew": True, "views": 0,
+                    "source": f"HRD-Net ({tr_name})", "verified": True, "fetchDate": TODAY,
                 })
             print(f"  📄 HRD-Net [{tr_name}]: {len(items)}건")
         except Exception as e:
@@ -320,32 +356,41 @@ def fetch_hrdnet():
 # 크롤링 5: 주요 지자체 지원사업
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_local_gov():
-    """기업마당 API의 지역 필터로 주요 지자체 사업 수집"""
     if not BIZINFO_API_KEY:
         print("⚠️  BIZINFO_API_KEY 필요 → 지자체 수집 건너뜀")
         return []
     programs = []
-    regions = [("대구","C055"),("서울","C011"),("부산","C021"),("경기","C031"),("경북","C053"),("인천","C023"),("광주","C025"),("대전","C042"),("경남","C056")]
+    regions = [
+        ("대구", "C055"), ("서울", "C011"), ("부산", "C021"), ("경기", "C031"),
+        ("경북", "C053"), ("인천", "C023"), ("광주", "C025"), ("대전", "C042"), ("경남", "C056"),
+    ]
     for region_name, region_code in regions:
         try:
-            resp = requests.get("https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do",
-                params={"crtfcKey":BIZINFO_API_KEY,"dataType":"json","pageUnit":15,"pageIndex":1,"areaCd":region_code,"searchSDate":THIRTY_DAYS_AGO,"searchEDate":TODAY}, timeout=30)
+            resp = requests.get("https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do", params={
+                "crtfcKey": BIZINFO_API_KEY, "dataType": "json", "pageUnit": 15,
+                "pageIndex": 1, "areaCd": region_code,
+                "searchSDate": THIRTY_DAYS_AGO, "searchEDate": TODAY,
+            }, timeout=30)
             resp.raise_for_status()
             items = resp.json().get("jsonArray", [])
             for item in items:
-                title = item.get("pblancNm","").strip()
-                if not title: continue
-                org = item.get("jrsdInsttNm","").strip()
-                desc = item.get("bsnsSumryCn","").strip()
-                dl = item.get("reqstEndDe","").strip().replace("-","")
+                title = item.get("pblancNm", "").strip()
+                if not title:
+                    continue
+                org = item.get("jrsdInsttNm", "").strip()
+                desc = item.get("bsnsSumryCn", "").strip()
+                dl = item.get("reqstEndDe", "").strip().replace("-", "")
                 programs.append({
-                    "title":title, "org":org, "category":classify_category(title,desc),
-                    "region":region_name, "amount":"공고문 참조",
-                    "deadline":dl if dl else "상시", "status":detect_status(dl),
-                    "description":desc[:200] if desc else f"{org} 지원사업",
-                    "target":item.get("trgetNm","공고문 참조"),
-                    "url":item.get("detailUrl","") or "https://www.bizinfo.go.kr",
-                    "isNew":True, "views":0, "source":f"기업마당 ({region_name})", "verified":True, "fetchDate":TODAY,
+                    "title": title, "org": org,
+                    "category": classify_category(title, desc),
+                    "region": region_name, "amount": "공고문 참조",
+                    "deadline": dl if dl else "상시",
+                    "status": detect_status(dl),
+                    "description": desc[:200] if desc else f"{org} 지원사업",
+                    "target": item.get("trgetNm", "공고문 참조"),
+                    "url": item.get("detailUrl", "") or "https://www.bizinfo.go.kr",
+                    "isNew": True, "views": 0,
+                    "source": f"기업마당 ({region_name})", "verified": True, "fetchDate": TODAY,
                 })
             print(f"  📄 지자체 [{region_name}]: {len(items)}건")
         except Exception as e:
@@ -357,18 +402,13 @@ def fetch_local_gov():
 # 데이터 병합 및 중복 제거
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def merge_programs(new_programs, existing_programs):
-    """새 데이터와 기존 데이터 병합, 중복 제거"""
     seen_titles = set()
     merged = []
-
-    # 새 데이터 우선
     for p in new_programs:
         normalized = re.sub(r'\s+', '', p["title"])
         if normalized not in seen_titles:
             seen_titles.add(normalized)
             merged.append(p)
-
-    # 기존 데이터 중 겹치지 않는 것만 추가 (최근 60일 이내)
     cutoff = (datetime.now() - timedelta(days=60)).strftime("%Y%m%d")
     for p in existing_programs:
         normalized = re.sub(r'\s+', '', p["title"])
@@ -377,11 +417,8 @@ def merge_programs(new_programs, existing_programs):
             p["isNew"] = False
             seen_titles.add(normalized)
             merged.append(p)
-
-    # ID 재부여
     for i, p in enumerate(merged):
         p["id"] = i + 1
-
     return merged
 
 
@@ -389,67 +426,47 @@ def merge_programs(new_programs, existing_programs):
 # HTML 대시보드 생성
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def generate_html(programs):
-    """수집된 데이터로 대시보드 HTML 생성"""
-
     programs_json = json.dumps(programs, ensure_ascii=False)
     update_time = datetime.now().strftime("%Y년 %m월 %d일 %H:%M")
-
-    # template.html은 scripts/ 폴더의 상위(프로젝트 루트)에 있음
     template_path = Path(__file__).parent.parent / "template.html"
     if not template_path.exists():
-        # scripts/ 같은 폴더에도 확인
         template_path = Path(__file__).parent / "template.html"
-
     if template_path.exists():
         template = template_path.read_text(encoding="utf-8")
         html = template.replace("__PROGRAMS_DATA__", programs_json)
+        html = html.replace("__UPDATE_TIME__", update_time)
+        html = html.replace("__TOTAL_COUNT__", str(len(programs)))
         return html
     else:
-        print("⚠️  template.html을 찾을 수 없습니다. 인라인 HTML을 생성합니다.")
-        return generate_inline_html(programs, update_time)
-
-
-def generate_inline_html(programs, update_time):
-    """인라인 HTML 대시보드 생성 (template.html이 없을 때)"""
-    programs_json = json.dumps(programs, ensure_ascii=False)
-
-    return f"""<!DOCTYPE html>
+        return f"""<!DOCTYPE html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 정부 지원금 통합 안내 대시보드</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>정부 지원금 통합 안내</title>
 <style>
-:root {{ --bg:#F0F2F7;--sf:#FFF;--sa:#F7F8FB;--ik:#0D1B2A;--ik2:#3D5A80;--ik3:#8DA2B8;--bl:#2563EB;--bd:#E2E8F0;--bl2:#EFF2F7; }}
 *{{margin:0;padding:0;box-sizing:border-box}}
-body{{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--ik);line-height:1.6}}
+:root{{--bg:#F8FAFC;--sf:#fff;--ik:#0D1B2A;--ik2:#475569;--ik3:#94A3B8;--sa:#F1F5F9;--bd:#E2E8F0;--bl2:#F1F5F9;--ac:#2563EB}}
+body{{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ik);line-height:1.6}}
+.hdr{{background:linear-gradient(135deg,#0F172A 0%,#1E3A5F 50%,#2563EB 100%);color:#fff;padding:32px 24px}}
+.hdr-in{{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}}
+.hdr-t{{font-size:26px;font-weight:800}}.hdr-t em{{color:#60A5FA;font-style:normal}}
+.hdr-sub{{font-size:13px;opacity:.7;margin-top:4px}}
+.hdr-st{{text-align:center}}.hdr-l{{font-size:12px;opacity:.7}}.hdr-n{{font-size:42px;font-weight:900;margin:0 8px;background:linear-gradient(135deg,#60A5FA,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.main{{max-width:1200px;margin:0 auto;padding:24px}}
+.vb{{background:linear-gradient(135deg,#EFF6FF,#F0FDF4);padding:10px 20px;border-radius:10px;font-size:13px;color:#1E40AF;margin-bottom:20px;border:1px solid #BFDBFE}}
+.fb{{margin-bottom:24px}}.sw{{margin-bottom:12px;position:relative}}.si{{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px}}
+.sinp{{width:100%;padding:14px 14px 14px 42px;border:2px solid var(--bd);border-radius:12px;font-size:15px;background:var(--sf);outline:none;font-family:inherit}}
+.sinp:focus{{border-color:var(--ac);box-shadow:0 0 0 3px rgba(37,99,235,.1)}}
+.cr{{display:flex;gap:6px;overflow-x:auto;padding:2px 0;margin-bottom:12px;-ms-overflow-style:none;scrollbar-width:none}}
+.cr::-webkit-scrollbar{{display:none}}
+.cb{{padding:8px 16px;border-radius:100px;border:1.5px solid var(--bd);background:var(--sf);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:inherit;color:var(--ik2)}}
+.cb:hover{{border-color:var(--ac);color:var(--ac)}}
+.cb.on{{background:var(--abg,#EFF6FF);border-color:var(--ac,#2563EB);color:var(--ac,#2563EB)}}
+.fr{{display:flex;gap:8px;align-items:center;flex-wrap:wrap}}
+.fs{{padding:8px 12px;border:1.5px solid var(--bd);border-radius:8px;font-size:13px;background:var(--sf);font-family:inherit;cursor:pointer}}
+.fc{{margin-left:auto;font-size:13px;color:var(--ik3)}}
 @keyframes fadeUp{{from{{opacity:0;transform:translateY(16px)}}to{{opacity:1;transform:translateY(0)}}}}
-@keyframes drift{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-5px)}}}}
-.anim{{animation:fadeUp .45s cubic-bezier(.22,1,.36,1) both}}
-.hdr{{background:linear-gradient(160deg,#0D1B2A,#1B2D45 60%,#243B55);padding:26px 0 22px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.15)}}
-.hdr-in{{max-width:1220px;margin:0 auto;padding:0 28px;display:flex;justify-content:space-between;align-items:center}}
-.hdr-t{{font-size:23px;font-weight:900;color:#fff;letter-spacing:-.04em;display:flex;align-items:center;gap:12px}}
-.hdr-t em{{font-style:normal;color:#60A5FA}}
-.hdr-sub{{font-size:12px;color:#7B9BBF;margin-top:2px}}
-.hdr-st{{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}}
-.hdr-n{{font-size:20px;font-weight:900;color:#60A5FA}}
-.hdr-l{{font-size:12px;color:#7B9BBF}}
-.main{{max-width:1220px;margin:0 auto;padding:28px 28px 80px}}
-.vb{{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;background:#DCFCE7;color:#166534;border:1px solid #BBF7D0;margin-bottom:16px}}
-.fb{{background:var(--sf);border-radius:20px;padding:22px 26px;margin-bottom:24px;border:1px solid var(--bd)}}
-.sw{{position:relative;margin-bottom:16px}}
-.si{{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:16px}}
-.sinp{{width:100%;padding:13px 18px 13px 44px;border-radius:12px;border:1.5px solid var(--bd);font-size:14px;outline:none;background:var(--sa);color:var(--ik);font-family:inherit}}
-.sinp:focus{{border-color:var(--bl);background:#fff}}
-.sinp::placeholder{{color:var(--ik3)}}
-.cr{{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}}
-.cb{{padding:7px 15px;border-radius:100px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--bd);background:#fff;color:var(--ik2);font-family:inherit;transition:all .2s}}
-.cb.on{{border-color:var(--ac);background:var(--abg);color:var(--ac)}}
-.fr{{display:flex;gap:12px;align-items:center;flex-wrap:wrap}}
-.fs{{padding:8px 14px;border-radius:10px;border:1px solid var(--bd);font-size:13px;color:var(--ik2);background:var(--sa);cursor:pointer;outline:none;font-family:inherit}}
-.fc{{font-size:13px;color:var(--ik3);margin-left:auto}}
-.fc strong{{color:var(--bl)}}
+@keyframes drift{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-4px)}}}}
+.anim{{animation:fadeUp .4s ease both}}
 .cg{{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:18px}}
 .cd{{background:var(--sf);border-radius:14px;padding:24px;cursor:pointer;position:relative;border:1px solid var(--bl2);overflow:hidden;transition:all .3s cubic-bezier(.22,1,.36,1)}}
 .cd:hover{{transform:translateY(-4px);box-shadow:0 8px 30px rgba(13,27,42,.07)}}
@@ -502,7 +519,7 @@ body{{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);c
 <div class="vb">✅ 공공데이터 API 기반 자동 수집 · {update_time} 업데이트</div>
 <div class="fb"><div class="sw"><span class="si">🔍</span><input class="sinp" id="searchInp" placeholder="지원사업명, 기관명, 키워드로 검색..." oninput="render()"/></div><div class="cr" id="catRow"></div><div class="fr"><select class="fs" id="regionSel" onchange="render()"></select><select class="fs" id="sortSel" onchange="render()"><option value="latest">🕐 최신순</option><option value="deadline">⏰ 마감임박순</option><option value="popular">🔥 인기순</option></select><span class="fc">검색결과 <strong id="fCnt">0</strong>건</span></div></div>
 <div class="cg" id="grid"></div>
-<div class="info"><h4>ℹ️ 자동 업데이트 안내</h4><p>이 대시보드는 GitHub Actions를 통해 매일 자동으로 기업마당·보조금24 API에서 최신 지원사업 정보를 수집합니다. 마지막 업데이트: {update_time}. 실제 신청 전 반드시 해당 기관 공식 홈페이지에서 세부 요건을 확인하세요.</p></div>
+<div class="info"><h4>ℹ️ 자동 업데이트 안내</h4><p>이 대시보드는 GitHub Actions를 통해 매일 자동으로 기업마당·복지로 API에서 최신 지원사업 정보를 수집합니다. 마지막 업데이트: {update_time}. 실제 신청 전 반드시 해당 기관 공식 홈페이지에서 세부 요건을 확인하세요.</p></div>
 </main>
 <div class="mo h" id="mO" onclick="closeM(event)"><div class="ml" id="mC" onclick="event.stopPropagation()"></div></div>
 <script>
@@ -531,7 +548,6 @@ def main():
     print(f"\n🏛  정부 지원금 자동 수집 시작 ({TODAY})")
     print("=" * 50)
 
-    # 1) 기존 데이터 로드
     existing = []
     if DATA_FILE.exists():
         try:
@@ -540,14 +556,13 @@ def main():
         except:
             existing = []
 
-    # 2) API에서 새 데이터 수집
     print("\n📡 API 데이터 수집 중...")
     new_programs = []
 
     print("\n[1/5] 기업마당 API")
     new_programs.extend(fetch_bizinfo())
 
-    print("\n[2/5] 보조금24 API")
+    print("\n[2/5] 복지서비스 API")
     new_programs.extend(fetch_subsidy24())
 
     print("\n[3/5] 온통청년 API")
@@ -561,21 +576,18 @@ def main():
 
     print(f"\n📊 새로 수집: {len(new_programs)}건")
 
-    # 3) 데이터 병합
     if new_programs:
         merged = merge_programs(new_programs, existing)
     else:
         print("⚠️  새 데이터가 없어 기존 데이터를 유지합니다.")
         merged = existing if existing else []
 
-    # 4) 저장
     DATA_FILE.write_text(
         json.dumps(merged, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
     print(f"💾 data.json 저장: {len(merged)}건")
 
-    # 5) HTML 생성
     html = generate_html(merged)
     HTML_FILE.write_text(html, encoding="utf-8")
     print(f"🌐 index.html 생성 완료")
