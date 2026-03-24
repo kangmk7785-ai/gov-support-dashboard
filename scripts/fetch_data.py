@@ -201,12 +201,10 @@ def fetch_subsidy24():
             for el in root.iter():
                 if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
                     found.append(el)
-            if not found:
-                tags = set()
-                for el in root.iter():
-                    if el.text and el.text.strip():
-                        tags.add(el.tag)
-                print(f"  🔍 XML 태그 목록: {sorted(tags)[:30]}")
+            found = []
+            for el in root.iter():
+                if el.findtext('servNm') or el.findtext('wlfareInfoNm'):
+                    found.append(el)
             if not found and not items:
                 print(f"  ⚠️ 복지서비스 페이지 {page}: 데이터 없음")
                 print(f"  🔍 응답 앞부분: {resp.text[:500]}")
@@ -233,6 +231,7 @@ def fetch_subsidy24():
                     "source": "복지로 API", "verified": True, "fetchDate": TODAY,
                 })
                 count += 1
+                if count == 0: print(f"  🔍 태그: {[el.tag for el in root.iter()][:20]}")
             print(f"  📄 복지서비스 페이지 {page}: {count}건 수집")
         except Exception as e:
             print(f"  ❌ 복지서비스 API 오류: {e}")
