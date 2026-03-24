@@ -192,8 +192,9 @@ def fetch_subsidy24():
             items = root.findall('.//servList')
             if not items:
                 items = root.findall('.//item')
-            if not items:
+          if not items:
                 print(f"  ⚠️ 복지서비스 페이지 {page}: 데이터 없음")
+                print(f"  🔍 응답 앞부분: {resp.text[:500]}")
                 break
             for item in items:
                 title = (item.findtext('servNm') or item.findtext('wlfareInfoNm') or '').strip()
