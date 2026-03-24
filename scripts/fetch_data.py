@@ -174,65 +174,51 @@ def fetch_bizinfo():
 # API 2: 공공데이터포털 보조금24 서비스 목록
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_subsidy24():
-    """보조금24 공공서비스 API에서 복지/보조금 정보 수집"""
+    """복지로 중앙부처복지서비스 API에서 복지 정보 수집"""
     if not DATA_GO_KR_API_KEY:
-        print("⚠️  DATA_GO_KR_API_KEY가 설정되지 않았습니다. 보조금24 API를 건너뜁니다.")
+        print("⚠️  DATA_GO_KR_API_KEY가 설정되지 않았습니다. 복지서비스 API를 건너뜁니다.")
         return []
-
     programs = []
-    url = "https://api.odcloud.kr/api/gov24/v3/serviceList"
-
-    params = {
-        "page": 1,
-        "perPage": 100,
-        "serviceKey": DATA_GO_KR_API_KEY,
-    }
-
-    try:
-        resp = requests.get(url, params=params, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
-
-        items = data.get("data", [])
-        for item in items:
-            title = item.get("서비스명", "").strip()
-            org = item.get("소관기관명", "").strip()
-            description = item.get("서비스목적요약", "").strip()
-            target = item.get("지원대상", "").strip()
-            support = item.get("지원내용", "").strip()
-            apply_method = item.get("신청방법", "").strip()
-            detail_url = item.get("상세조회URL", "")
-
-            if not title:
-                continue
-
-            full_desc = description
-            if support:
-                full_desc = f"{description} | 지원내용: {support[:100]}"
-
-            programs.append({
-                "title": title,
-                "org": org,
-                "category": classify_category(title, full_desc),
-                "region": detect_region(title, org),
-                "amount": support[:50] if support else "공고문 참조",
-                "deadline": "상시",
-                "status": "상시접수",
-                "description": full_desc[:200] if full_desc else f"{org} 제공 서비스",
-                "target": target[:100] if target else "공고문 참조",
-                "url": detail_url if detail_url else "https://www.gov.kr",
-                "isNew": False,
-                "views": 0,
-                "source": "보조금24 API",
-                "verified": True,
-                "fetchDate": TODAY,
-            })
-
-        print(f"  📄 보조금24: {len(items)}건 수집")
-
-    except requests.exceptions.RequestException as e:
-        print(f"  ❌ 보조금24 API 오류: {e}")
-
+    url = "https://apis.data.go.kr/B554287/NationalWelfareInformationsV001/NationalWelfarelistV001"
+    for page in range(1, 4):
+        params = {"ServiceKey": DATA_GO_KR_API_KEY, "numOfRows": 100, "pageNo": page}
+        try:
+            resp = requests.get(url, params=params, timeout=30)
+            if resp.status_code != 200:
+                print(f"  ❌ 복지서비스 API 오류: {resp.status_code}")
+                break
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(resp.text)
+            items = root.findall('.//servList')
+            if not items:
+                items = root.findall('.//item')
+            if not items:
+                print(f"  ⚠️ 복지서비스 페이지 {page}: 데이터 없음")
+                break
+            for item in items:
+                title = (item.findtext('servNm') or item.findtext('wlfareInfoNm') or '').strip()
+                org = (item.findtext('jurMnofNm') or item.findtext('ministryNm') or '').strip()
+                desc = (item.findtext('servDgst') or item.findtext('wlfareInfoOutline') or '').strip()
+                target = (item.findtext('trgterIndvdlNm') or '').strip()
+                svc_id = (item.findtext('servId') or '').strip()
+                if not title:
+                    continue
+                detail_url = f"https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId={svc_id}" if svc_id else "https://www.bokjiro.go.kr"
+                programs.append({
+                    "title": title, "org": org if org else "보건복지부",
+                    "category": classify_category(title, desc),
+                    "region": detect_region(title, org),
+                    "amount": "공고문 참조", "deadline": "상시", "status": "상시접수",
+                    "description": desc[:200] if desc else f"{org} 복지서비스",
+                    "target": target if target else "공고문 참조",
+                    "url": detail_url,
+                    "isNew": True, "views": 0,
+                    "source": "복지로 API", "verified": True, "fetchDate": TODAY,
+                })
+            print(f"  📄 복지서비스 페이지 {page}: {len(items)}건 수집")
+        except Exception as e:
+            print(f"  ❌ 복지서비스 API 오류: {e}")
+            break
     return programs
 
 
