@@ -1,0 +1,49 @@
+name: 📡 매일 자동 업데이트 → Netlify 배포
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 🐍 Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 패키지 설치
+        run: pip install requests
+
+      - name: 📡 API 데이터 수집 및 HTML 생성
+        env:
+          BIZINFO_API_KEY: ${{ secrets.BIZINFO_API_KEY }}
+          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
+          YOUTH_API_KEY: ${{ secrets.YOUTH_API_KEY }}
+        run: python scripts/fetch_data.py
+
+      - name: 💾 변경사항 저장
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data.json index.html
+          git diff --staged --quiet || git commit -m "📡 자동 업데이트: $(TZ='Asia/Seoul' date +'%Y-%m-%d %H:%M') KST"
+          git push
+
+      - name: 🚀 Netlify 배포 트리거
+        if: env.NETLIFY_BUILD_HOOK != ''
+        env:
+          NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          curl -X POST "$NETLIFY_BUILD_HOOK"
+          echo "✅ Netlify 배포 트리거 완료"
