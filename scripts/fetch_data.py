@@ -188,8 +188,9 @@ def fetch_subsidy24():
             resp = requests.get(url, params={
                 "ServiceKey": DATA_GO_KR_API_KEY,
                 "callTp": "L",
-                "numOfRows": 100,
-                "pageNo": page
+                "numOfRows": 500,
+                "pageNo": page,
+                "srchKeyCode": "003"
             }, timeout=30)
 
             if resp.status_code != 200:
