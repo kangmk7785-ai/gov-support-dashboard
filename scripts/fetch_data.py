@@ -25,6 +25,17 @@ YOUTH_API_KEY = os.environ.get("YOUTH_API_KEY", "")  # 온통청년 API
 TODAY = datetime.now().strftime("%Y%m%d")
 THIRTY_DAYS_AGO = (datetime.now() - timedelta(days=30)).strftime("%Y%m%d")
 
+
+def strip_html(text):
+    """HTML 태그 제거"""
+    if not text:
+        return ""
+    clean = re.sub(r'<[^>]+>', ' ', text)
+    clean = re.sub(r'&nbsp;', ' ', clean)
+    clean = re.sub(r'&[a-zA-Z]+;', ' ', clean)
+    clean = re.sub(r'\s+', ' ', clean).strip()
+    return clean
+
 OUTPUT_DIR = Path(__file__).parent.parent
 DATA_FILE = OUTPUT_DIR / "data.json"
 HTML_FILE = OUTPUT_DIR / "index.html"
@@ -135,7 +146,7 @@ def fetch_bizinfo():
             for item in items:
                 title = item.get("pblancNm", "").strip()
                 org = item.get("jrsdInsttNm", "").strip()
-                description = item.get("bsnsSumryCn", "").strip()
+                description = strip_html(item.get("bsnsSumryCn", ""))
                 deadline = item.get("reqstEndDe", "").strip().replace("-", "")
                 detail_url = item.get("detailUrl", "")
                 target = item.get("trgetNm", "").strip()
@@ -319,41 +330,9 @@ def fetch_youth():
 # API 4: HRD-Net 직업훈련 (고용24)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_hrdnet():
-    """HRD-Net에서 주요 직업훈련 과정 정보 수집"""
-    if not DATA_GO_KR_API_KEY:
-        print("⚠️  DATA_GO_KR_API_KEY 필요 → HRD-Net 건너뜀")
-        return []
-    programs = []
-    train_types = [("C0061","K-디지털트레이닝"),("C0054","국민내일배움카드"),("C0055","국가기간전략산업")]
-    for tr_code, tr_name in train_types:
-        try:
-            url = "https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do"
-            sd = f"{THIRTY_DAYS_AGO[:4]}-{THIRTY_DAYS_AGO[4:6]}-{THIRTY_DAYS_AGO[6:]}"
-            ed = f"{TODAY[:4]}-{TODAY[4:6]}-{TODAY[6:]}"
-            resp = requests.get(url, params={"authKey":DATA_GO_KR_API_KEY,"returnType":"JSON","outType":"1","pageNum":1,"pageSize":20,"srchTraStDt":sd,"srchTraEndDt":ed,"sort":"ASC","sortCol":"TRNG_BGDE","crseTracseSe":tr_code}, timeout=30)
-            data = resp.json()
-            items = data.get("srchList", data.get("resultList", []))
-            if not isinstance(items, list): items = []
-            for item in items:
-                title = item.get("trprNm",item.get("subTitle","")).strip()
-                if not title: continue
-                inst = item.get("trainstCstNm",item.get("instNm","")).strip()
-                addr = item.get("addr1","").strip()
-                end_dt = item.get("traEndDate",item.get("trngEndde","")).replace("-","")
-                cost = item.get("courseMan",item.get("courseMn",""))
-                cost_str = f"훈련비 {int(cost):,}원" if cost else "공고문 참조"
-                programs.append({
-                    "title":f"[{tr_name}] {title}", "org":inst or "HRD-Net", "category":"education",
-                    "region":detect_region(addr,inst), "amount":cost_str,
-                    "deadline":end_dt if end_dt else "상시", "status":detect_status(end_dt),
-                    "description":f"{tr_name} 과정. {inst} 운영." + (f" {addr}" if addr else ""),
-                    "target":"국민내일배움카드 발급자", "url":"https://hrd.work24.go.kr",
-                    "isNew":True, "views":0, "source":f"HRD-Net ({tr_name})", "verified":True, "fetchDate":TODAY,
-                })
-            print(f"  📄 HRD-Net [{tr_name}]: {len(items)}건")
-        except Exception as e:
-            print(f"  ❌ HRD-Net 오류 [{tr_name}]: {e}")
-    return programs
+    """HRD-Net 직업훈련 - 별도 API 키 필요 (추후 활성화)"""
+    print("⚠️  HRD-Net은 별도 인증키가 필요합니다. work24.go.kr에서 발급 후 활성화 가능.")
+    return []
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -365,18 +344,18 @@ def fetch_local_gov():
         print("⚠️  BIZINFO_API_KEY 필요 → 지자체 수집 건너뜀")
         return []
     programs = []
-    regions = [("대구","C055"),("서울","C011"),("부산","C021"),("경기","C031"),("경북","C053"),("인천","C023"),("광주","C025"),("대전","C042"),("경남","C056")]
+    regions = [("서울","C011"),("부산","C021"),("대구","C055"),("인천","C023"),("광주","C025"),("대전","C042"),("울산","C044"),("세종","C036"),("경기","C031"),("강원","C033"),("충북","C043"),("충남","C041"),("전북","C035"),("전남","C046"),("경북","C053"),("경남","C056"),("제주","C064")]
     for region_name, region_code in regions:
         try:
             resp = requests.get("https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do",
-                params={"crtfcKey":BIZINFO_API_KEY,"dataType":"json","pageUnit":15,"pageIndex":1,"areaCd":region_code,"searchSDate":THIRTY_DAYS_AGO,"searchEDate":TODAY}, timeout=30)
+                params={"crtfcKey":BIZINFO_API_KEY,"dataType":"json","pageUnit":50,"pageIndex":1,"areaCd":region_code,"searchSDate":THIRTY_DAYS_AGO,"searchEDate":TODAY}, timeout=30)
             resp.raise_for_status()
             items = resp.json().get("jsonArray", [])
             for item in items:
                 title = item.get("pblancNm","").strip()
                 if not title: continue
                 org = item.get("jrsdInsttNm","").strip()
-                desc = item.get("bsnsSumryCn","").strip()
+                desc = strip_html(item.get("bsnsSumryCn",""))
                 dl = item.get("reqstEndDe","").strip().replace("-","")
                 programs.append({
                     "title":title, "org":org, "category":classify_category(title,desc),
