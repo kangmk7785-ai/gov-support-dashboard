@@ -41,29 +41,57 @@ DATA_FILE = OUTPUT_DIR / "data.json"
 HTML_FILE = OUTPUT_DIR / "index.html"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 카테고리 자동 분류
+# 카테고리 자동 분류 (대분류 C혼합형 11개 + 소분류 B성장단계)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 CATEGORY_KEYWORDS = {
-    "small_biz": ["소상공인", "소공인", "전통시장", "상점가", "상권", "영세", "자영업", "폐업", "재기"],
-    "startup": ["창업", "예비창업", "스타트업", "벤처", "사관학교", "액셀러레이터", "창진원"],
-    "employment": ["고용", "취업", "일자리", "채용", "인턴", "근로", "청년일자리", "장려금", "구직"],
-    "tech": ["기술", "R&D", "연구개발", "스마트공장", "혁신", "특허", "디지털전환", "AI활용"],
-    "agriculture": ["농업", "농림", "수산", "축산", "귀농", "귀촌", "영농"],
-    "welfare": ["복지", "생계", "긴급", "의료", "주거", "돌봄", "양육", "출산", "보육", "월세"],
-    "education": ["교육", "훈련", "배움", "디지털트레이닝", "KDT", "직업훈련", "인재양성"],
+    "finance": ["융자", "대출", "자금", "정책자금", "이차보전", "금리", "대여", "보증", "채권", "금융", "비즈플러스카드", "스케일업금융"],
+    "startup": ["창업", "예비창업", "스타트업", "벤처", "사관학교", "액셀러레이터", "창진원", "프리팁스", "팁스", "데모데이", "IR", "보육", "로컬크리에이터"],
+    "rnd": ["R&D", "연구개발", "스마트공장", "특허", "디지털전환", "AI활용", "시제품", "기술개발", "기술혁신", "기술사업화", "기술이전", "실증", "기술고도화"],
+    "market": ["판로", "마케팅", "전시회", "박람회", "수출", "해외진출", "글로벌", "무역", "온라인몰", "쇼핑몰", "홈쇼핑", "바이어", "해외마켓", "유통", "해외전시"],
+    "employ": ["고용", "취업", "일자리", "채용", "인턴", "근로", "청년일자리", "장려금", "구직", "인력", "채용지원", "인건비"],
+    "edu": ["교육", "훈련", "배움", "디지털트레이닝", "KDT", "직업훈련", "인재양성", "연수", "역량강화", "아카데미"],
+    "consult": ["컨설팅", "인증", "ISO", "특허출원", "지식재산", "IP", "디자인개발", "브랜드", "경영진단", "FTA", "인증획득"],
+    "smallbiz": ["소상공인", "소공인", "전통시장", "상점가", "상권", "영세", "자영업", "배달", "온누리", "골목형"],
+    "youth": ["청년", "청년정책", "청년일자리", "청년도전", "청년창업", "청년주거", "MZ", "청년인턴"],
+    "welfare": ["복지", "생계", "긴급", "의료", "주거", "돌봄", "양육", "출산", "보육", "월세", "수당", "급여", "장애인", "노인", "아동", "건강관리"],
+    "agri": ["농업", "농림", "수산", "축산", "귀농", "귀촌", "영농", "어업", "천일염", "식품", "농식품"],
+}
+
+SUB_CATEGORY_KEYWORDS = {
+    "prepare": ["예비", "준비", "교육", "진단", "상담", "설계"],
+    "early": ["초기", "창업자금", "시드", "사업화자금", "정책자금"],
+    "develop": ["기술개발", "R&D", "시제품", "실증", "고도화", "개발지원"],
+    "talent": ["인력", "채용", "인턴", "고용", "인재", "구직", "일자리"],
+    "sales": ["판로", "마케팅", "전시", "입점", "홍보", "온라인"],
+    "global": ["수출", "해외", "글로벌", "무역", "박람회", "바이어"],
+    "stable": ["경영안정", "컨설팅", "인증", "융자", "안정화", "구조개선"],
+    "restart": ["재기", "재창업", "폐업", "희망리턴", "재도전", "새출발"],
+    "life": ["복지", "생계", "돌봄", "출산", "의료", "주거", "양육"],
 }
 
 def classify_category(title, description=""):
-    """제목과 설명으로 카테고리 자동 분류"""
+    """제목과 설명으로 대분류 자동 분류"""
     text = f"{title} {description}".lower()
     scores = {}
     for cat, keywords in CATEGORY_KEYWORDS.items():
-        score = sum(1 for kw in keywords if kw.lower() in text)
+        score = sum(2 if kw.lower() in title.lower() else 1 for kw in keywords if kw.lower() in text)
         if score > 0:
             scores[cat] = score
     if scores:
         return max(scores, key=scores.get)
-    return "small_biz"  # 기본값
+    return "etc"
+
+def classify_sub_category(title, description=""):
+    """소분류 (성장단계) 자동 분류"""
+    text = f"{title} {description}".lower()
+    scores = {}
+    for sub, keywords in SUB_CATEGORY_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw.lower() in text)
+        if score > 0:
+            scores[sub] = score
+    if scores:
+        return max(scores, key=scores.get)
+    return ""
 
 
 def detect_region(title, org):
@@ -158,6 +186,7 @@ def fetch_bizinfo():
                     "title": title,
                     "org": org,
                     "category": classify_category(title, description),
+                    "subCategory": classify_sub_category(title, description),
                     "region": detect_region(title, org),
                     "amount": "공고문 참조",
                     "deadline": deadline if deadline else "상시",
@@ -262,6 +291,7 @@ def fetch_subsidy24():
                     "title": title,
                     "org": org if org else "보건복지부",
                     "category": classify_category(title, desc),
+                    "subCategory": classify_sub_category(title, desc),
                     "region": detect_region(title, org),
                     "amount": "공고문 참조",
                     "deadline": "상시",
@@ -359,6 +389,7 @@ def fetch_local_gov():
                 dl = item.get("reqstEndDe","").strip().replace("-","")
                 programs.append({
                     "title":title, "org":org, "category":classify_category(title,desc),
+                    "subCategory":classify_sub_category(title,desc),
                     "region":region_name, "amount":"공고문 참조",
                     "deadline":dl if dl else "상시", "status":detect_status(dl),
                     "description":desc[:200] if desc else f"{org} 지원사업",
