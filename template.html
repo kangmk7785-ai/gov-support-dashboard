@@ -3,628 +3,423 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="2026년 정부·지자체 지원금, 보조금, 소상공인 지원사업 정보를 매일 자동 업데이트하여 제공합니다.">
-<meta property="og:title" content="정부 지원금 통합 안내">
-<meta property="og:description" content="소상공인, 창업, 고용, 복지 등 정부 지원사업을 한눈에">
 <title>정부 지원금 통합 안내 | 2026</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
-/*──────────────────────────────────────────
-  DESIGN SYSTEM
-──────────────────────────────────────────*/
-:root {
-  --c-bg: #F4F6FA;
-  --c-surface: #FFFFFF;
-  --c-surface2: #F8F9FC;
-  --c-ink: #111827;
-  --c-ink2: #374151;
-  --c-ink3: #6B7280;
-  --c-ink4: #9CA3AF;
-  --c-border: #E5E7EB;
-  --c-border2: #F3F4F6;
-  --c-blue: #2563EB;
-  --c-blue-bg: #EFF6FF;
-  --c-amber: #D97706;
-  --c-green: #059669;
-  --c-violet: #7C3AED;
-  --c-rose: #DB2777;
-  --c-lime: #65A30D;
-  --c-cyan: #0891B2;
-  --c-orange: #EA580C;
-  --c-red: #DC2626;
-  --r: 12px;
-  --r-lg: 18px;
-  --shadow: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.02);
-  --shadow-md: 0 4px 20px rgba(0,0,0,.06);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,.1);
-  --max-w: 1180px;
-}
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--c-bg); color: var(--c-ink); line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-}
-a { text-decoration: none; color: inherit; }
-button { font-family: inherit; cursor: pointer; }
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+:root{--bg:#f6f7fb;--card:#fff;--text:#1a1a2e;--sub:#5a607f;--muted:#8b90a8;--accent:#3b5bdb;--accent2:#5c7cfa;--accentBg:#edf2ff;--border:#e8eaf0;--hover:#f0f2ff;--tag:#f1f3f8;--green:#12b886;--greenBg:#e6fcf5;--orange:#fd7e14;--orangeBg:#fff4e6;--red:#fa5252;--redBg:#fff5f5;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,.04)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:var(--accent);color:#fff}
+a{color:inherit;text-decoration:none}
 
-/*──────────────────────────────────────────
-  ANIMATIONS
-──────────────────────────────────────────*/
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
-.fade-up { animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both; }
+/* Header */
+.header{background:#fff;border-bottom:1px solid var(--border);padding:20px 0;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);background:rgba(255,255,255,.92)}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:800}
+.logo-text{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.03em}
+.logo-text span{color:var(--accent)}
+.header-stat{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub)}
+.header-stat strong{font-size:18px;font-weight:800;color:var(--accent)}
+.header-stat em{font-style:normal;font-size:11px;color:var(--muted);background:var(--tag);padding:2px 8px;border-radius:20px}
 
-/*──────────────────────────────────────────
-  HEADER
-──────────────────────────────────────────*/
-.header {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-  padding: 20px 0;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 16px rgba(0,0,0,.2);
-}
-.header-inner {
-  max-width: var(--max-w); margin: 0 auto; padding: 0 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 16px;
-}
-.logo { display:flex; align-items:center; gap:10px; }
-.logo-icon { font-size:26px; animation: float 3s ease-in-out infinite; }
-.logo-text {
-  font-family: 'Outfit', 'Noto Sans KR', sans-serif;
-  font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.03em;
-}
-.logo-text span { color: #60A5FA; }
-.header-meta { font-size: 11px; color: #64748B; margin-top: 1px; }
-.header-right { display:flex; align-items:center; gap:12px; }
-.header-count {
-  padding: 6px 14px; border-radius: 8px;
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08);
-  font-size: 12px; color: #94A3B8;
-}
-.header-count b { color: #60A5FA; font-size: 18px; font-weight: 800; }
+/* Ad slots */
+.ad-slot{max-width:1200px;margin:16px auto;padding:0 24px}
+.ad-box{background:#fafbfc;border:1px dashed var(--border);border-radius:10px;padding:12px;text-align:center;color:var(--muted);font-size:12px;min-height:50px;display:flex;align-items:center;justify-content:center}
 
-/*──────────────────────────────────────────
-  AD BANNER SLOTS
-  - .ad-banner: 공통 광고 배너 컨테이너
-  - data-slot="header|sidebar|inline|footer" 로 위치 구분
-  - 광고 없을 때는 display:none
-──────────────────────────────────────────*/
-.ad-banner {
-  max-width: var(--max-w); margin: 0 auto; padding: 0 24px;
-}
-.ad-banner-inner {
-  background: var(--c-surface2);
-  border: 1px dashed var(--c-border);
-  border-radius: var(--r);
-  text-align: center;
-  padding: 12px;
-  font-size: 11px; color: var(--c-ink4);
-  /* 광고가 없을 때 숨기려면 아래 주석 해제 */
-  /* display: none; */
-}
-.ad-banner[data-slot="header"] { padding-top: 12px; padding-bottom: 0; }
-.ad-banner[data-slot="header"] .ad-banner-inner { border-radius: 0 0 var(--r) var(--r); }
-.ad-banner[data-slot="inline"] { padding: 0; margin-bottom: 20px; }
-.ad-banner[data-slot="footer"] { padding-bottom: 24px; }
+/* Main */
+.main{max-width:1200px;margin:0 auto;padding:20px 24px 80px}
 
-/*──────────────────────────────────────────
-  MAIN LAYOUT
-──────────────────────────────────────────*/
-.main { max-width: var(--max-w); margin: 0 auto; padding: 24px 24px 60px; }
+/* Search & Filter Section */
+.filter-section{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:20px}
+.search-box{position:relative;margin-bottom:16px}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--muted)}
+.search-input{width:100%;padding:12px 16px 12px 42px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#f9fafb;color:var(--text);transition:all .2s}
+.search-input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(59,91,219,.1)}
+.search-input::placeholder{color:var(--muted)}
 
-/*──────────────────────────────────────────
-  SEARCH & FILTER
-──────────────────────────────────────────*/
-.toolbar {
-  background: var(--c-surface); border-radius: var(--r-lg);
-  padding: 20px 22px; margin-bottom: 22px;
-  border: 1px solid var(--c-border2); box-shadow: var(--shadow);
-}
-.search-box { position:relative; margin-bottom:14px; }
-.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; pointer-events:none; }
-.search-input {
-  width:100%; padding:11px 16px 11px 42px; border-radius:10px;
-  border:1.5px solid var(--c-border); font-size:14px; outline:none;
-  background:var(--c-surface2); color:var(--c-ink); font-family:inherit;
-  transition: border-color .2s, background .2s;
-}
-.search-input:focus { border-color:var(--c-blue); background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,.06); }
-.search-input::placeholder { color:var(--c-ink4); }
+.filter-row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+.filter-row:last-child{margin-bottom:0}
+.filter-label{font-size:12px;font-weight:700;color:var(--sub);min-width:52px;padding-top:7px;flex-shrink:0}
+.filter-tags{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.ftag{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--sub);font-family:inherit;transition:all .18s;white-space:nowrap}
+.ftag:hover{border-color:var(--accent);color:var(--accent);background:var(--accentBg)}
+.ftag.on{border-color:var(--accent);background:var(--accent);color:#fff}
 
-.filter-cats { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px; }
-.cat-btn {
-  padding:6px 13px; border-radius:100px; font-size:12px; font-weight:600;
-  border:1.5px solid var(--c-border); background:#fff; color:var(--c-ink3);
-  transition: all .15s;
-}
-.cat-btn:hover { border-color:#D1D5DB; background:var(--c-surface2); }
-.cat-btn.active { border-color:var(--_c); background:var(--_bg); color:var(--_c); }
+/* Sort & Count Bar */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.sort-btns{display:flex;gap:6px}
+.sort-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--sub);font-family:inherit;transition:all .18s}
+.sort-btn.on{background:var(--text);color:#fff;border-color:var(--text)}
+.count-text{font-size:13px;color:var(--muted)}
+.count-text strong{color:var(--accent);font-weight:800}
 
-.filter-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.filter-sel {
-  padding:7px 12px; border-radius:8px; border:1px solid var(--c-border);
-  font-size:12.5px; color:var(--c-ink2); background:var(--c-surface2);
-  cursor:pointer; outline:none; font-family:inherit;
-}
-.result-count { font-size:12.5px; color:var(--c-ink4); margin-left:auto; }
-.result-count b { color:var(--c-blue); }
+/* Cards Grid */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;cursor:pointer;border:1px solid var(--border);transition:all .25s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.06);border-color:var(--accent)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
+.card-badges{display:flex;gap:5px;flex-wrap:wrap}
+.badge-cat{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-region{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:500;background:var(--tag);color:var(--sub)}
+.badge-status{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.status-open{background:var(--greenBg);color:var(--green)}
+.status-soon{background:var(--orangeBg);color:var(--orange)}
+.status-closed{background:var(--redBg);color:var(--red)}
+.status-always{background:var(--accentBg);color:var(--accent)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:-.02em}
+.card-org{font-size:12px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:4px}
+.card-info{display:flex;flex-direction:column;gap:4px}
+.card-info-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub)}
+.card-info-row .label{color:var(--muted);min-width:52px}
+.card-info-row .value{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-link{display:inline-flex;align-items:center;gap:4px;margin-top:12px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:var(--accent);background:var(--accentBg);transition:all .18s}
+.card-link:hover{background:var(--accent);color:#fff}
 
-/*──────────────────────────────────────────
-  CARD GRID
-──────────────────────────────────────────*/
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 16px;
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:#fff;border-radius:18px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:28px;position:relative;transform:translateY(20px);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;border:none;background:var(--tag);color:var(--sub);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .18s}
+.modal-close:hover{background:var(--redBg);color:var(--red)}
+.modal-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.modal-title{font-size:20px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:16px;letter-spacing:-.03em}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.modal-item{padding:14px;background:var(--tag);border-radius:10px}
+.modal-item-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.modal-item-value{font-size:14px;font-weight:600;color:var(--text)}
+.modal-section{margin-bottom:18px}
+.modal-section h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.modal-section p{font-size:14px;color:var(--sub);line-height:1.7}
+.modal-apply{display:block;width:100%;padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;text-align:center}
+.modal-apply:hover{background:#2b4bc0;transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,91,219,.3)}
+
+/* Footer */
+.footer{max-width:1200px;margin:0 auto;padding:24px;text-align:center;font-size:12px;color:var(--muted)}
+
+/* Empty State */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-text{font-size:15px;font-weight:600}
+.empty-sub{font-size:13px;margin-top:4px}
+
+/* Responsive */
+@media(max-width:768px){
+.cards{grid-template-columns:1fr}
+.modal-grid{grid-template-columns:1fr}
+.header-stat em{display:none}
+.filter-row{flex-direction:column;gap:6px}
+.filter-label{padding-top:0}
 }
 
-.card {
-  background: var(--c-surface); border-radius: var(--r);
-  padding: 22px; position: relative; overflow: hidden;
-  border: 1px solid var(--c-border2);
-  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s;
-  cursor: pointer;
-}
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-}
-.card-accent {
-  position:absolute; top:0; left:0; right:0; height:2.5px;
-}
-
-/* 태그 영역 */
-.card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:8px; }
-.card-tags { display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
-.tag {
-  padding:2px 9px; border-radius:100px; font-size:10.5px; font-weight:600;
-  line-height:1.6;
-}
-.tag-cat { /* 색상은 인라인 */ }
-.tag-region { background:#F1F5F9; color:#475569; }
-.tag-new { background:#DC2626; color:#fff; letter-spacing:.04em; font-size:9.5px; }
-
-/* 상태 뱃지 */
-.status {
-  padding:2px 9px; border-radius:100px; font-size:10.5px;
-  font-weight:600; white-space:nowrap; flex-shrink:0;
-}
-.st-active { background:#DCFCE7; color:#166534; }
-.st-always { background:#DBEAFE; color:#1E40AF; }
-.st-urgent { background:#FEF3C7; color:#92400E; }
-.st-closed { background:#F3F4F6; color:#6B7280; }
-
-.card-title {
-  font-size:15.5px; font-weight:700; color:var(--c-ink);
-  line-height:1.4; margin-bottom:5px;
-}
-.card-org { font-size:12.5px; color:var(--c-ink4); margin-bottom:10px; }
-.card-desc {
-  font-size:13px; color:var(--c-ink3); line-height:1.6; margin-bottom:14px;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-.card-bottom {
-  display:flex; justify-content:space-between; align-items:center;
-  padding-top:12px; border-top:1px solid var(--c-border2);
-}
-.card-info { display:flex; gap:12px; font-size:12px; color:var(--c-ink4); }
-.card-amount { font-weight:600; color:var(--c-ink); }
-.card-dday { font-size:10.5px; font-weight:700; }
-.dday-red { color:#DC2626; } .dday-amber { color:#D97706; }
-
-/* 출처 & 링크 */
-.card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
-.card-source { font-size:10px; color:var(--c-ink4); display:flex; align-items:center; gap:4px; }
-.card-source::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; background:#059669; }
-.card-link {
-  display:inline-flex; align-items:center; gap:4px; padding:4px 10px;
-  border-radius:6px; font-size:11px; font-weight:600;
-  background:var(--c-blue-bg); color:var(--c-blue);
-  transition: background .15s;
-}
-.card-link:hover { background:#DBEAFE; }
-
-/* 빈 상태 */
-.empty {
-  text-align:center; padding:60px 20px; background:var(--c-surface);
-  border-radius:var(--r); border:1px solid var(--c-border2); grid-column:1/-1;
-}
-
-/*──────────────────────────────────────────
-  MODAL
-──────────────────────────────────────────*/
-.overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,.45);
-  backdrop-filter:blur(6px); display:flex; align-items:center;
-  justify-content:center; z-index:1000; padding:20px;
-  animation: fadeIn .15s ease;
-}
-.overlay.hide { display:none; }
-.modal {
-  background:var(--c-surface); border-radius:var(--r-lg);
-  max-width:600px; width:100%; max-height:85vh; overflow:auto;
-  padding:32px; box-shadow:var(--shadow-lg);
-  animation: fadeUp .25s cubic-bezier(.16,1,.3,1);
-}
-.modal-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
-.modal-tags { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; }
-.modal-title { font-size:20px; font-weight:800; line-height:1.35; letter-spacing:-.02em; }
-.modal-close {
-  background:var(--c-surface2); border:none; border-radius:50%;
-  width:34px; height:34px; font-size:16px; display:flex;
-  align-items:center; justify-content:center; color:var(--c-ink3);
-  flex-shrink:0; margin-left:12px; transition: background .15s;
-}
-.modal-close:hover { background:#E5E7EB; }
-.modal-grid {
-  background:var(--c-surface2); border-radius:var(--r);
-  padding:18px; display:grid; grid-template-columns:1fr 1fr;
-  gap:14px; margin-bottom:22px;
-}
-.modal-label { font-size:10.5px; color:var(--c-ink4); font-weight:600; margin-bottom:2px; text-transform:uppercase; letter-spacing:.03em; }
-.modal-value { font-size:13.5px; color:var(--c-ink); font-weight:600; }
-.modal-section { margin-bottom:18px; }
-.modal-section h4 { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--c-ink); }
-.modal-section p { font-size:13.5px; color:var(--c-ink2); line-height:1.7; }
-.modal-cta {
-  display:block; width:100%; padding:14px; border-radius:var(--r);
-  text-align:center; font-size:14.5px; font-weight:700;
-  color:#fff; border:none; transition: transform .15s, opacity .15s;
-}
-.modal-cta:hover { transform:scale(1.01); opacity:.92; }
-
-/*──────────────────────────────────────────
-  FOOTER
-──────────────────────────────────────────*/
-.footer {
-  max-width: var(--max-w); margin: 0 auto; padding: 0 24px 40px;
-}
-.footer-inner {
-  padding: 20px 22px; background: var(--c-surface);
-  border-radius: var(--r); border: 1px solid var(--c-border2);
-}
-.footer-inner h4 { font-size:13px; font-weight:700; margin-bottom:6px; }
-.footer-inner p { font-size:12px; color:var(--c-ink4); line-height:1.7; }
-
-/*──────────────────────────────────────────
-  RESPONSIVE
-──────────────────────────────────────────*/
-@media (max-width: 768px) {
-  .header-inner { flex-direction:column; align-items:flex-start; }
-  .grid { grid-template-columns:1fr; }
-  .modal { padding:24px; }
-  .modal-grid { grid-template-columns:1fr; }
-  .card-link { display:none; } /* 모바일에서는 카드 전체가 클릭 */
-}
+/* Animation */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:fadeIn .35s ease both}
 </style>
 </head>
 <body>
 
-<!-- ═══════════ HEADER ═══════════ -->
 <header class="header">
-  <div class="header-inner">
-    <div>
-      <div class="logo">
-        <span class="logo-icon">🏛</span>
-        <span class="logo-text">정부지원금 <span>통합안내</span></span>
-      </div>
-      <p class="header-meta" id="headerMeta"></p>
-    </div>
-    <div class="header-right">
-      <div class="header-count">총 <b id="totalCnt">0</b> 건</div>
-    </div>
-  </div>
+<div class="header-inner">
+<div class="logo">
+<div class="logo-icon">G</div>
+<div><div class="logo-text">정부지원금 <span>통합안내</span></div></div>
+</div>
+<div class="header-stat"><strong id="totalCount">0</strong><span>건&nbsp;</span><em id="updateDate"></em></div>
+</div>
 </header>
 
-<!-- ═══════════ 광고 배너: 상단 ═══════════ -->
-<div class="ad-banner" data-slot="header">
-  <div class="ad-banner-inner" id="adHeader">
-    <!-- 광고 코드를 여기에 삽입 (예: Google AdSense, 카카오 애드핏 등) -->
-    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
-    📢 광고 배너 영역 (728×90) — 광고 코드 삽입 시 이 텍스트 삭제
-  </div>
-</div>
+<div class="ad-slot"><div class="ad-box" id="adHeader">광고 영역</div></div>
 
-<!-- ═══════════ MAIN ═══════════ -->
 <main class="main">
 
-  <!-- 검색 & 필터 -->
-  <div class="toolbar">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInp" placeholder="지원사업명, 기관명, 키워드 검색..." oninput="render()">
-    </div>
-    <div class="filter-cats" id="catBtns"></div>
-    <div class="filter-row">
-      <select class="filter-sel" id="regionSel" onchange="render()"></select>
-      <select class="filter-sel" id="sortSel" onchange="render()">
-        <option value="latest">최신순</option>
-        <option value="deadline">마감임박순</option>
-        <option value="popular">조회순</option>
-      </select>
-      <span class="result-count"><b id="filtCnt">0</b>건</span>
-    </div>
-  </div>
+<div class="filter-section">
+<div class="search-box">
+<span class="search-icon">🔍</span>
+<input type="text" class="search-input" id="searchInput" placeholder="지원사업명, 키워드, 기관명으로 검색하세요...">
+</div>
 
-  <!-- ═══════════ 광고 배너: 카드 위 인라인 ═══════════ -->
-  <div class="ad-banner" data-slot="inline" style="max-width:100%;padding:0;">
-    <div class="ad-banner-inner" id="adInline1">
-      📢 인라인 광고 (반응형) — 광고 코드 삽입 시 이 텍스트 삭제
-    </div>
-  </div>
+<div class="filter-row">
+<span class="filter-label">분야</span>
+<div class="filter-tags" id="catFilter">
+<button class="ftag on" data-cat="all">전체</button>
+<button class="ftag" data-cat="small_biz">소상공인</button>
+<button class="ftag" data-cat="startup">창업·벤처</button>
+<button class="ftag" data-cat="employment">고용·취업</button>
+<button class="ftag" data-cat="tech">기술·R&D</button>
+<button class="ftag" data-cat="agriculture">농림·수산</button>
+<button class="ftag" data-cat="welfare">복지·생활</button>
+<button class="ftag" data-cat="education">교육·훈련</button>
+</div>
+</div>
 
-  <!-- 카드 그리드 -->
-  <div class="grid" id="grid"></div>
+<div class="filter-row">
+<span class="filter-label">지역</span>
+<div class="filter-tags" id="regionFilter">
+<button class="ftag on" data-region="all">전체</button>
+<button class="ftag" data-region="전국">전국</button>
+<button class="ftag" data-region="서울">서울</button>
+<button class="ftag" data-region="경기">경기</button>
+<button class="ftag" data-region="인천">인천</button>
+<button class="ftag" data-region="부산">부산</button>
+<button class="ftag" data-region="대구">대구</button>
+<button class="ftag" data-region="광주">광주</button>
+<button class="ftag" data-region="대전">대전</button>
+<button class="ftag" data-region="울산">울산</button>
+<button class="ftag" data-region="세종">세종</button>
+<button class="ftag" data-region="강원">강원</button>
+<button class="ftag" data-region="충북">충북</button>
+<button class="ftag" data-region="충남">충남</button>
+<button class="ftag" data-region="전북">전북</button>
+<button class="ftag" data-region="전남">전남</button>
+<button class="ftag" data-region="경북">경북</button>
+<button class="ftag" data-region="경남">경남</button>
+<button class="ftag" data-region="제주">제주</button>
+</div>
+</div>
 
-  <!-- ═══════════ 광고 배너: 카드 아래 인라인 ═══════════ -->
-  <div class="ad-banner" data-slot="inline" style="max-width:100%;padding:0;margin-top:20px;">
-    <div class="ad-banner-inner" id="adInline2">
-      📢 인라인 광고 (반응형) — 광고 코드 삽입 시 이 텍스트 삭제
-    </div>
-  </div>
+<div class="filter-row">
+<span class="filter-label">대상</span>
+<div class="filter-tags" id="targetFilter">
+<button class="ftag on" data-target="all">전체</button>
+<button class="ftag" data-target="중소기업">중소기업</button>
+<button class="ftag" data-target="소상공인">소상공인</button>
+<button class="ftag" data-target="창업">창업기업</button>
+<button class="ftag" data-target="청년">청년</button>
+<button class="ftag" data-target="여성">여성</button>
+<button class="ftag" data-target="장애인">장애인</button>
+<button class="ftag" data-target="저소득">저소득</button>
+<button class="ftag" data-target="사회적기업">사회적기업</button>
+</div>
+</div>
+</div>
 
+<div class="toolbar">
+<div class="sort-btns">
+<button class="sort-btn on" data-sort="latest">최신순</button>
+<button class="sort-btn" data-sort="deadline">마감임박순</button>
+<button class="sort-btn" data-sort="views">조회순</button>
+</div>
+<div class="count-text">검색결과 <strong id="filteredCount">0</strong>건</div>
+</div>
+
+<div class="cards" id="cardGrid"></div>
+<div class="empty" id="emptyState" style="display:none">
+<div class="empty-icon">📭</div>
+<div class="empty-text">검색 결과가 없습니다</div>
+<div class="empty-sub">다른 키워드나 필터를 시도해보세요</div>
+</div>
 </main>
 
-<!-- ═══════════ FOOTER ═══════════ -->
-<div class="footer">
-  <div class="footer-inner">
-    <h4>ℹ️ 안내</h4>
-    <p>본 사이트는 기업마당(bizinfo.go.kr), 보조금24(gov.kr), 고용24(work24.go.kr) 등 공공데이터 API를 통해 매일 자동 수집된 정보를 제공합니다. 실제 신청 전 반드시 해당 기관 공식 홈페이지에서 최신 세부 요건을 확인하세요.</p>
-  </div>
+<div class="ad-slot"><div class="ad-box" id="adFooter">광고 영역</div></div>
+
+<footer class="footer">
+정부 지원금 정보는 매일 자동 수집됩니다. 실제 신청 전 반드시 해당 기관 공식 홈페이지에서 세부 요건을 확인하세요.
+</footer>
+
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal" id="modalContent"></div>
 </div>
 
-<!-- ═══════════ 광고 배너: 하단 ═══════════ -->
-<div class="ad-banner" data-slot="footer">
-  <div class="ad-banner-inner" id="adFooter">
-    📢 하단 광고 배너 (728×90) — 광고 코드 삽입 시 이 텍스트 삭제
-  </div>
-</div>
-
-<!-- ═══════════ MODAL ═══════════ -->
-<div class="overlay hide" id="overlay" onclick="closeModal(event)">
-  <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
-</div>
-
-<!-- ═══════════ SCRIPT ═══════════ -->
 <script>
-/*────────────────────────────────────
-  CONFIG & DATA
-────────────────────────────────────*/
-const CATS = [
-  {id:"all",   label:"전체",     icon:"📋", color:"#2563EB"},
-  {id:"small_biz", label:"소상공인", icon:"🏪", color:"#D97706"},
-  {id:"startup",   label:"창업지원", icon:"🚀", color:"#7C3AED"},
-  {id:"employment",label:"고용/취업",icon:"💼", color:"#059669"},
-  {id:"tech",      label:"기술/R&D",icon:"🔬", color:"#DB2777"},
-  {id:"agriculture",label:"농림/수산",icon:"🌾",color:"#65A30D"},
-  {id:"welfare",   label:"복지/생활",icon:"🏠", color:"#0891B2"},
-  {id:"education", label:"교육/훈련",icon:"📚", color:"#EA580C"},
-];
-const REGS = ["전국","서울","부산","대구","인천","광주","대전","울산","세종","경기","강원","충북","충남","전북","전남","경북","경남","제주"];
-const SPECIALS = ["상시","미정","공고문 참조","세부사업별 상이","사업별 상이","예산 소진시","추후 공고","모집중","과정별 상이"];
-
-// ─── __DATA_PLACEHOLDER__ ───
-// fetch_data.py가 이 줄을 실제 데이터로 교체합니다
 const P = __PROGRAMS_DATA__;
 
-let activeCat = "all";
+// Category config
+const CAT={
+small_biz:{label:"소상공인",color:"#e67700",bg:"#fff4e6"},
+startup:{label:"창업·벤처",color:"#5c7cfa",bg:"#edf2ff"},
+employment:{label:"고용·취업",color:"#0ca678",bg:"#e6fcf5"},
+tech:{label:"기술·R&D",color:"#7950f2",bg:"#f3f0ff"},
+agriculture:{label:"농림·수산",color:"#2b8a3e",bg:"#ebfbee"},
+welfare:{label:"복지·생활",color:"#e8590c",bg:"#fff4e6"},
+education:{label:"교육·훈련",color:"#1c7ed6",bg:"#e7f5ff"}
+};
 
-/*────────────────────────────────────
-  UTILS
-────────────────────────────────────*/
-function fmtDate(d) {
-  if (!d || SPECIALS.includes(d)) return d || "-";
-  try {
-    const s = d.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
-    const dt = new Date(s);
-    if (isNaN(dt)) return d;
-    return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,"0")}.${String(dt.getDate()).padStart(2,"0")}`;
-  } catch { return d; }
+function getCat(c){return CAT[c]||{label:"기타",color:"#868e96",bg:"#f1f3f5"}}
+
+function statusClass(s){
+if(!s)return"status-always";
+if(s.includes("마감")||s.includes("종료"))return"status-closed";
+if(s.includes("임박"))return"status-soon";
+if(s.includes("접수중"))return"status-open";
+return"status-always";
 }
 
-function daysLeft(d) {
-  if (!d || SPECIALS.includes(d)) return null;
-  try {
-    const s = d.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
-    const dt = new Date(s);
-    if (isNaN(dt)) return null;
-    return Math.ceil((dt - new Date()) / 864e5);
-  } catch { return null; }
+function fmtDate(d){
+if(!d||d==="상시")return"상시";
+if(d.length===8)return d.slice(0,4)+"."+d.slice(4,6)+"."+d.slice(6);
+return d;
 }
 
-function catOf(id) { return CATS.find(c => c.id === id) || CATS[0]; }
-
-function statusClass(s) {
-  if (s === "접수중") return "st-active";
-  if (s === "상시접수") return "st-always";
-  if (s === "마감임박") return "st-urgent";
-  return "st-closed";
+function stripHtml(t){
+if(!t)return"";
+return t.replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&[a-zA-Z]+;/g," ").replace(/\s+/g," ").trim();
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+// State
+let activeCat="all",activeRegion="all",activeTarget="all",activeSort="latest",searchQuery="";
+
+// Render
+function render(){
+let items=P.filter(p=>{
+if(activeCat!=="all"&&p.category!==activeCat)return false;
+if(activeRegion!=="all"&&p.region!==activeRegion)return false;
+if(activeTarget!=="all"){
+const t=(p.target||"")+(p.title||"")+(p.description||"");
+if(!t.includes(activeTarget))return false;
+}
+if(searchQuery){
+const q=searchQuery.toLowerCase();
+const s=((p.title||"")+(p.org||"")+(p.description||"")+(p.target||"")).toLowerCase();
+if(!s.includes(q))return false;
+}
+return true;
+});
+
+// Sort
+if(activeSort==="deadline"){
+items.sort((a,b)=>{
+if(a.deadline==="상시")return 1;if(b.deadline==="상시")return-1;
+return a.deadline.localeCompare(b.deadline);
+});
+}else if(activeSort==="views"){
+items.sort((a,b)=>(b.views||0)-(a.views||0));
+}else{
+items.sort((a,b)=>(b.id||0)-(a.id||0));
 }
 
-/*────────────────────────────────────
-  INIT
-────────────────────────────────────*/
-function init() {
-  const now = new Date();
-  document.getElementById("headerMeta").textContent =
-    `매일 자동 업데이트 · ${now.toLocaleDateString("ko-KR")} ${now.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit"})}`;
-  document.getElementById("totalCnt").textContent = P.length;
+const grid=document.getElementById("cardGrid");
+const empty=document.getElementById("emptyState");
+document.getElementById("filteredCount").textContent=items.length;
 
-  // 카테고리 버튼
-  const wrap = document.getElementById("catBtns");
-  CATS.forEach(c => {
-    const b = document.createElement("button");
-    b.className = "cat-btn" + (c.id === "all" ? " active" : "");
-    b.textContent = `${c.icon} ${c.label}`;
-    b.style.setProperty("--_c", c.color);
-    b.style.setProperty("--_bg", c.color + "12");
-    b.onclick = () => {
-      activeCat = c.id;
-      wrap.querySelectorAll(".cat-btn").forEach(x => x.classList.remove("active"));
-      b.classList.add("active");
-      render();
-    };
-    wrap.appendChild(b);
-  });
+if(items.length===0){
+grid.innerHTML="";
+empty.style.display="block";
+return;
+}
+empty.style.display="none";
 
-  // 지역 셀렉트
-  const rs = document.getElementById("regionSel");
-  REGS.forEach(r => { const o = document.createElement("option"); o.value = r; o.textContent = r; rs.appendChild(o); });
-
-  render();
+grid.innerHTML=items.map((p,i)=>{
+const c=getCat(p.category);
+const sc=statusClass(p.status);
+const desc=stripHtml(p.description).slice(0,80);
+const target=stripHtml(p.target).slice(0,40);
+return`<div class="card" style="animation-delay:${Math.min(i*0.03,0.5)}s" onclick="openModal(${p.id})">
+<div class="card-top">
+<div class="card-badges">
+<span class="badge-cat" style="background:${c.bg};color:${c.color}">${c.label}</span>
+<span class="badge-region">${p.region||"전국"}</span>
+</div>
+<span class="badge-status ${sc}">${p.status||"상시접수"}</span>
+</div>
+<div class="card-title">${p.title}</div>
+<div class="card-org">🏛 ${p.org}</div>
+<div class="card-info">
+<div class="card-info-row"><span class="label">지원대상</span><span class="value">${target||"공고문 참조"}</span></div>
+<div class="card-info-row"><span class="label">신청마감</span><span class="value">${fmtDate(p.deadline)}</span></div>
+</div>
+<span class="card-link" onclick="event.stopPropagation();window.open('${p.url}','_blank')">상세정보 →</span>
+</div>`;
+}).join("");
 }
 
-/*────────────────────────────────────
-  RENDER
-────────────────────────────────────*/
-function render() {
-  const q = document.getElementById("searchInp").value.toLowerCase();
-  const rg = document.getElementById("regionSel").value;
-  const sort = document.getElementById("sortSel").value;
+// Modal
+function openModal(id){
+const p=P.find(x=>x.id===id);
+if(!p)return;
+const c=getCat(p.category);
+const sc=statusClass(p.status);
+const desc=stripHtml(p.description);
+const target=stripHtml(p.target);
 
-  let list = P.filter(p => {
-    const c1 = activeCat === "all" || p.category === activeCat;
-    const c2 = rg === "전국" || p.region === rg || p.region === "전국";
-    const c3 = !q || p.title.toLowerCase().includes(q) || p.org.toLowerCase().includes(q) || (p.description||"").toLowerCase().includes(q);
-    return c1 && c2 && c3;
-  });
-
-  list.sort((a, b) => {
-    if (sort === "latest") return (b.isNew|0) - (a.isNew|0) || b.id - a.id;
-    if (sort === "deadline") {
-      if (SPECIALS.includes(a.deadline)) return 1;
-      if (SPECIALS.includes(b.deadline)) return -1;
-      return (a.deadline||"").localeCompare(b.deadline||"");
-    }
-    if (sort === "popular") return (b.views||0) - (a.views||0);
-    return 0;
-  });
-
-  document.getElementById("filtCnt").textContent = list.length;
-  const grid = document.getElementById("grid");
-
-  if (!list.length) {
-    grid.innerHTML = `<div class="empty"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:16px;font-weight:700">검색 결과가 없습니다</div><p style="font-size:13px;color:var(--c-ink4);margin-top:4px">다른 키워드나 필터를 사용해보세요</p></div>`;
-    return;
-  }
-
-  grid.innerHTML = list.map((p, i) => {
-    const c = catOf(p.category);
-    const dl = daysLeft(p.deadline);
-    let ddayHtml = "";
-    if (dl !== null && dl > 0 && dl <= 30)
-      ddayHtml = `<span class="card-dday ${dl <= 7 ? "dday-red" : "dday-amber"}">D-${dl}</span>`;
-
-    const safeUrl = escHtml(p.url || "#");
-    const safeTitle = escHtml(p.title);
-    const safeOrg = escHtml(p.org);
-    const safeDesc = escHtml(p.description || "");
-    const safeAmount = escHtml(p.amount || "공고문 참조");
-
-    return `<div class="card fade-up" style="animation-delay:${Math.min(i*.03,.6)}s" onclick="openModal(${p.id})">
-      <div class="card-accent" style="background:linear-gradient(90deg,${c.color},${c.color}80)"></div>
-      <div class="card-top">
-        <div class="card-tags">
-          <span class="tag tag-cat" style="background:${c.color}10;color:${c.color}">${c.icon} ${c.label}</span>
-          ${p.region !== "전국" ? `<span class="tag tag-region">📍${p.region}</span>` : ""}
-          ${p.isNew ? '<span class="tag tag-new">NEW</span>' : ""}
-        </div>
-        <span class="status ${statusClass(p.status)}">${p.status === "마감임박" ? '<span style="animation:pulse 1.5s infinite">⚡</span>' : ""}${p.status}</span>
-      </div>
-      <div class="card-title">${safeTitle}</div>
-      <div class="card-org">${safeOrg}</div>
-      <div class="card-desc">${safeDesc}</div>
-      <div class="card-bottom">
-        <div class="card-info">
-          <span class="card-amount">💰 ${safeAmount}</span>
-          <span>📅 ${fmtDate(p.deadline)}</span>
-        </div>
-        ${ddayHtml}
-      </div>
-      <div class="card-footer">
-        <span class="card-source">${escHtml(p.source || "공공데이터")}</span>
-        <a href="${safeUrl}" target="_blank" rel="noopener" class="card-link" onclick="event.stopPropagation()">바로가기 →</a>
-      </div>
-    </div>`;
-  }).join("");
+document.getElementById("modalContent").innerHTML=`
+<button class="modal-close" onclick="closeModal()">✕</button>
+<div class="modal-badges">
+<span class="badge-cat" style="background:${c.bg};color:${c.color}">${c.label}</span>
+<span class="badge-region">${p.region||"전국"}</span>
+<span class="badge-status ${sc}">${p.status||"상시접수"}</span>
+</div>
+<div class="modal-title">${p.title}</div>
+<div class="modal-grid">
+<div class="modal-item"><div class="modal-item-label">지원기관</div><div class="modal-item-value">${p.org}</div></div>
+<div class="modal-item"><div class="modal-item-label">지원금액</div><div class="modal-item-value">${p.amount||"공고문 참조"}</div></div>
+<div class="modal-item"><div class="modal-item-label">신청마감</div><div class="modal-item-value">${fmtDate(p.deadline)}</div></div>
+<div class="modal-item"><div class="modal-item-label">지원지역</div><div class="modal-item-value">${p.region||"전국"}</div></div>
+</div>
+<div class="modal-section">
+<h4>📋 사업 개요</h4>
+<p>${desc||"상세 내용은 공식 홈페이지를 참조하세요."}</p>
+</div>
+<div class="modal-section">
+<h4>🎯 지원 대상 및 자격 요건</h4>
+<p>${target||"공고문 참조"}</p>
+</div>
+<button class="modal-apply" onclick="window.open('${p.url}','_blank')">공식 홈페이지에서 신청하기 →</button>
+`;
+document.getElementById("modalOverlay").classList.add("show");
+document.body.style.overflow="hidden";
 }
 
-/*────────────────────────────────────
-  MODAL
-────────────────────────────────────*/
-function openModal(id) {
-  const p = P.find(x => x.id === id);
-  if (!p) return;
-  const c = catOf(p.category);
-
-  document.getElementById("modal").innerHTML = `
-    <div class="modal-head">
-      <div style="flex:1">
-        <div class="modal-tags">
-          <span class="tag tag-cat" style="background:${c.color}10;color:${c.color};padding:3px 11px;font-size:11.5px">${c.icon} ${c.label}</span>
-          <span class="status ${statusClass(p.status)}" style="font-size:11.5px">${p.status}</span>
-          ${p.isNew ? '<span class="tag tag-new" style="padding:3px 9px">NEW</span>' : ""}
-        </div>
-        <div class="modal-title">${escHtml(p.title)}</div>
-      </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-
-    <div class="modal-grid">
-      <div><div class="modal-label">🏛 지원기관</div><div class="modal-value">${escHtml(p.org)}</div></div>
-      <div><div class="modal-label">💰 지원금액</div><div class="modal-value">${escHtml(p.amount || "공고문 참조")}</div></div>
-      <div><div class="modal-label">📅 신청마감</div><div class="modal-value">${fmtDate(p.deadline)}</div></div>
-      <div><div class="modal-label">📍 지원지역</div><div class="modal-value">${p.region}</div></div>
-    </div>
-
-    <div class="modal-section"><h4>📝 사업 개요</h4><p>${escHtml(p.description || "")}</p></div>
-    <div class="modal-section"><h4>🎯 지원 대상</h4><p>${escHtml(p.target || "공고문 참조")}</p></div>
-    ${p.source ? `<div class="modal-section"><h4>📌 데이터 출처</h4><p style="font-size:12.5px;color:var(--c-ink4)">${escHtml(p.source)}</p></div>` : ""}
-
-    <a href="${escHtml(p.url || "#")}" target="_blank" rel="noopener"
-       class="modal-cta" style="background:linear-gradient(135deg,${c.color},${c.color}CC);box-shadow:0 4px 16px ${c.color}30">
-      공식 홈페이지에서 신청하기 →
-    </a>`;
-
-  document.getElementById("overlay").classList.remove("hide");
-  document.body.style.overflow = "hidden";
+function closeModal(){
+document.getElementById("modalOverlay").classList.remove("show");
+document.body.style.overflow="";
 }
 
-function closeModal(e) {
-  if (e && e.target !== e.currentTarget) return;
-  document.getElementById("overlay").classList.add("hide");
-  document.body.style.overflow = "";
-}
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+document.getElementById("modalOverlay").addEventListener("click",function(e){
+if(e.target===this)closeModal();
+});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal()});
 
-/*────────────────────────────────────
-  광고 배너 제어 (나중에 사용)
-  - hideAd("adHeader") : 특정 배너 숨기기
-  - showAd("adHeader") : 특정 배너 보이기
-  - setAd("adHeader", "<광고코드>") : 광고 코드 삽입
-────────────────────────────────────*/
-function hideAd(id) { const el = document.getElementById(id); if (el) el.parentElement.style.display = "none"; }
-function showAd(id) { const el = document.getElementById(id); if (el) el.parentElement.style.display = ""; }
-function setAd(id, html) { const el = document.getElementById(id); if (el) { el.innerHTML = html; el.style.border = "none"; el.style.background = "transparent"; el.style.padding = "0"; } }
+// Filter handlers
+document.getElementById("catFilter").addEventListener("click",function(e){
+const btn=e.target.closest(".ftag");
+if(!btn)return;
+activeCat=btn.dataset.cat;
+this.querySelectorAll(".ftag").forEach(b=>b.classList.toggle("on",b.dataset.cat===activeCat));
+render();
+});
 
-// 광고가 없을 때 빈 배너 숨기기 (필요시 주석 해제)
-// hideAd("adHeader"); hideAd("adInline1"); hideAd("adInline2"); hideAd("adFooter");
+document.getElementById("regionFilter").addEventListener("click",function(e){
+const btn=e.target.closest(".ftag");
+if(!btn)return;
+activeRegion=btn.dataset.region;
+this.querySelectorAll(".ftag").forEach(b=>b.classList.toggle("on",b.dataset.region===activeRegion));
+render();
+});
 
-/*────────────────────────────────────
-  GO
-────────────────────────────────────*/
-init();
+document.getElementById("targetFilter").addEventListener("click",function(e){
+const btn=e.target.closest(".ftag");
+if(!btn)return;
+activeTarget=btn.dataset.target;
+this.querySelectorAll(".ftag").forEach(b=>b.classList.toggle("on",b.dataset.target===activeTarget));
+render();
+});
+
+document.querySelectorAll(".sort-btn").forEach(btn=>{
+btn.addEventListener("click",function(){
+activeSort=this.dataset.sort;
+document.querySelectorAll(".sort-btn").forEach(b=>b.classList.toggle("on",b.dataset.sort===activeSort));
+render();
+});
+});
+
+let searchTimer;
+document.getElementById("searchInput").addEventListener("input",function(){
+clearTimeout(searchTimer);
+searchTimer=setTimeout(()=>{searchQuery=this.value.trim();render();},250);
+});
+
+// Init
+document.getElementById("totalCount").textContent=P.length;
+document.getElementById("updateDate").textContent=new Date().toLocaleDateString("ko-KR")+" 기준";
+render();
+
+// Ad control functions
+function hideAd(id){const e=document.getElementById(id);if(e)e.parentElement.style.display="none"}
+function showAd(id){const e=document.getElementById(id);if(e)e.parentElement.style.display="block"}
+function setAd(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html}
 </script>
 </body>
 </html>
