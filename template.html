@@ -145,13 +145,33 @@ a{color:inherit;text-decoration:none}
 <span class="filter-label">분야</span>
 <div class="filter-tags" id="catFilter">
 <button class="ftag on" data-cat="all">전체</button>
-<button class="ftag" data-cat="small_biz">소상공인</button>
+<button class="ftag" data-cat="finance">자금·융자</button>
 <button class="ftag" data-cat="startup">창업·벤처</button>
-<button class="ftag" data-cat="employment">고용·취업</button>
-<button class="ftag" data-cat="tech">기술·R&D</button>
-<button class="ftag" data-cat="agriculture">농림·수산</button>
+<button class="ftag" data-cat="rnd">R&D·기술</button>
+<button class="ftag" data-cat="market">판로·수출</button>
+<button class="ftag" data-cat="employ">고용·인력</button>
+<button class="ftag" data-cat="edu">교육·훈련</button>
+<button class="ftag" data-cat="consult">컨설팅·인증</button>
+<button class="ftag" data-cat="smallbiz">소상공인</button>
+<button class="ftag" data-cat="youth">청년</button>
 <button class="ftag" data-cat="welfare">복지·생활</button>
-<button class="ftag" data-cat="education">교육·훈련</button>
+<button class="ftag" data-cat="agri">농림·수산</button>
+</div>
+</div>
+
+<div class="filter-row">
+<span class="filter-label">단계</span>
+<div class="filter-tags" id="subCatFilter">
+<button class="ftag on" data-sub="all">전체</button>
+<button class="ftag" data-sub="prepare">창업준비</button>
+<button class="ftag" data-sub="early">초기자금</button>
+<button class="ftag" data-sub="develop">기술개발</button>
+<button class="ftag" data-sub="talent">인력확보</button>
+<button class="ftag" data-sub="sales">판로개척</button>
+<button class="ftag" data-sub="global">해외진출</button>
+<button class="ftag" data-sub="stable">경영안정</button>
+<button class="ftag" data-sub="restart">재기지원</button>
+<button class="ftag" data-sub="life">생활복지</button>
 </div>
 </div>
 
@@ -228,13 +248,23 @@ const P = __PROGRAMS_DATA__;
 
 // Category config
 const CAT={
-small_biz:{label:"소상공인",color:"#e67700",bg:"#fff4e6"},
+finance:{label:"자금·융자",color:"#e03131",bg:"#fff5f5"},
 startup:{label:"창업·벤처",color:"#5c7cfa",bg:"#edf2ff"},
-employment:{label:"고용·취업",color:"#0ca678",bg:"#e6fcf5"},
-tech:{label:"기술·R&D",color:"#7950f2",bg:"#f3f0ff"},
-agriculture:{label:"농림·수산",color:"#2b8a3e",bg:"#ebfbee"},
-welfare:{label:"복지·생활",color:"#e8590c",bg:"#fff4e6"},
-education:{label:"교육·훈련",color:"#1c7ed6",bg:"#e7f5ff"}
+rnd:{label:"R&D·기술",color:"#7950f2",bg:"#f3f0ff"},
+market:{label:"판로·수출",color:"#e8590c",bg:"#fff4e6"},
+employ:{label:"고용·인력",color:"#0ca678",bg:"#e6fcf5"},
+edu:{label:"교육·훈련",color:"#1c7ed6",bg:"#e7f5ff"},
+consult:{label:"컨설팅·인증",color:"#6741d9",bg:"#f3f0ff"},
+smallbiz:{label:"소상공인",color:"#e67700",bg:"#fff9db"},
+youth:{label:"청년",color:"#f06595",bg:"#fff0f6"},
+welfare:{label:"복지·생활",color:"#d6336c",bg:"#fff0f6"},
+agri:{label:"농림·수산",color:"#2b8a3e",bg:"#ebfbee"},
+etc:{label:"기타",color:"#868e96",bg:"#f1f3f5"}
+};
+
+const SUBCAT={
+prepare:"창업준비",early:"초기자금",develop:"기술개발",talent:"인력확보",
+sales:"판로개척",global:"해외진출",stable:"경영안정",restart:"재기지원",life:"생활복지"
 };
 
 function getCat(c){return CAT[c]||{label:"기타",color:"#868e96",bg:"#f1f3f5"}}
@@ -259,12 +289,13 @@ return t.replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&[a-zA-Z]+;/g,"
 }
 
 // State
-let activeCat="all",activeRegion="all",activeTarget="all",activeSort="latest",searchQuery="";
+let activeCat="all",activeRegion="all",activeTarget="all",activeSub="all",activeSort="latest",searchQuery="";
 
 // Render
 function render(){
 let items=P.filter(p=>{
 if(activeCat!=="all"&&p.category!==activeCat)return false;
+if(activeSub!=="all"&&p.subCategory!==activeSub)return false;
 if(activeRegion!=="all"&&p.region!==activeRegion)return false;
 if(activeTarget!=="all"){
 const t=(p.target||"")+(p.title||"")+(p.description||"");
@@ -310,6 +341,7 @@ return`<div class="card" style="animation-delay:${Math.min(i*0.03,0.5)}s" onclic
 <div class="card-top">
 <div class="card-badges">
 <span class="badge-cat" style="background:${c.bg};color:${c.color}">${c.label}</span>
+${p.subCategory&&SUBCAT[p.subCategory]?`<span class="badge-region" style="background:#edf2ff;color:#4263eb">${SUBCAT[p.subCategory]}</span>`:''}
 <span class="badge-region">${p.region||"전국"}</span>
 </div>
 <span class="badge-status ${sc}">${p.status||"상시접수"}</span>
@@ -386,6 +418,14 @@ const btn=e.target.closest(".ftag");
 if(!btn)return;
 activeRegion=btn.dataset.region;
 this.querySelectorAll(".ftag").forEach(b=>b.classList.toggle("on",b.dataset.region===activeRegion));
+render();
+});
+
+document.getElementById("subCatFilter").addEventListener("click",function(e){
+const btn=e.target.closest(".ftag");
+if(!btn)return;
+activeSub=btn.dataset.sub;
+this.querySelectorAll(".ftag").forEach(b=>b.classList.toggle("on",b.dataset.sub===activeSub));
 render();
 });
 
