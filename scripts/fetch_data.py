@@ -21,6 +21,9 @@ from pathlib import Path
 BIZINFO_API_KEY = os.environ.get("BIZINFO_API_KEY", "")
 DATA_GO_KR_API_KEY = os.environ.get("DATA_GO_KR_API_KEY", "")
 YOUTH_API_KEY = os.environ.get("YOUTH_API_KEY", "")  # 온통청년 API
+HRDNET_KEY_CARD = os.environ.get("HRDNET_KEY_CARD", "")  # 국민내일배움카드
+HRDNET_KEY_WORK = os.environ.get("HRDNET_KEY_WORK", "")  # 일학습병행
+HRDNET_KEY_CONSORT = os.environ.get("HRDNET_KEY_CONSORT", "")  # 컨소시엄
 
 TODAY = datetime.now().strftime("%Y%m%d")
 THIRTY_DAYS_AGO = (datetime.now() - timedelta(days=30)).strftime("%Y%m%d")
@@ -360,9 +363,95 @@ def fetch_youth():
 # API 4: HRD-Net 직업훈련 (고용24)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def fetch_hrdnet():
-    """HRD-Net 직업훈련 - 별도 API 키 필요 (추후 활성화)"""
-    print("⚠️  HRD-Net은 별도 인증키가 필요합니다. work24.go.kr에서 발급 후 활성화 가능.")
-    return []
+    """HRD-Net 직업훈련 과정 수집 (3개 API)"""
+    programs = []
+    base_url = "https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do"
+    sd = f"{THIRTY_DAYS_AGO[:4]}-{THIRTY_DAYS_AGO[4:6]}-{THIRTY_DAYS_AGO[6:]}"
+    ed = f"{TODAY[:4]}-{TODAY[4:6]}-{TODAY[6:]}"
+
+    apis = [
+        (HRDNET_KEY_CARD, "국민내일배움카드"),
+        (HRDNET_KEY_WORK, "일학습병행"),
+        (HRDNET_KEY_CONSORT, "컨소시엄"),
+    ]
+
+    for api_key, api_name in apis:
+        if not api_key:
+            print(f"  ⚠️ HRD-Net [{api_name}] 키 미설정 → 건너뜀")
+            continue
+        try:
+            resp = requests.get(base_url, params={
+                "authKey": api_key,
+                "returnType": "JSON",
+                "outType": "1",
+                "pageNum": 1,
+                "pageSize": 50,
+                "srchTraStDt": sd,
+                "srchTraEndDt": ed,
+                "sort": "ASC",
+                "sortCol": "TRNG_BGDE",
+            }, timeout=30)
+
+            try:
+                data = resp.json()
+            except:
+                print(f"  ⚠️ HRD-Net [{api_name}]: JSON 파싱 실패")
+                print(f"  🔍 응답: {resp.text[:300]}")
+                continue
+
+            items = data.get("srchList", data.get("resultList", []))
+            if not isinstance(items, list):
+                items = []
+
+            count = 0
+            for item in items:
+                title = item.get("trprNm", item.get("subTitle", "")).strip()
+                if not title:
+                    continue
+                inst = item.get("trainstCstNm", item.get("instNm", "")).strip()
+                addr = item.get("addr1", "").strip()
+                start_dt = item.get("traStartDate", item.get("trngBgde", "")).replace("-", "")
+                end_dt = item.get("traEndDate", item.get("trngEndde", "")).replace("-", "")
+                cost = item.get("courseMan", item.get("courseMn", ""))
+                real_cost = item.get("realMan", item.get("realMn", ""))
+
+                cost_str = "공고문 참조"
+                if cost:
+                    try:
+                        cost_str = f"훈련비 {int(cost):,}원"
+                        if real_cost:
+                            cost_str += f" (실비 {int(real_cost):,}원)"
+                    except:
+                        pass
+
+                region = detect_region(addr, inst)
+
+                programs.append({
+                    "title": f"[{api_name}] {title}",
+                    "org": inst if inst else "HRD-Net",
+                    "category": "edu",
+                    "subCategory": classify_sub_category(title, f"{api_name} {inst}"),
+                    "region": region,
+                    "amount": cost_str,
+                    "deadline": end_dt if end_dt else "상시",
+                    "status": detect_status(end_dt),
+                    "description": strip_html(f"{api_name} 과정. {inst} 운영." + (f" 소재지: {addr}" if addr else "")),
+                    "target": "국민내일배움카드 발급자" if api_name == "국민내일배움카드" else "재직자·구직자",
+                    "url": "https://hrd.work24.go.kr",
+                    "isNew": True,
+                    "views": 0,
+                    "source": f"HRD-Net ({api_name})",
+                    "verified": True,
+                    "fetchDate": TODAY,
+                })
+                count += 1
+
+            print(f"  📄 HRD-Net [{api_name}]: {count}건 수집")
+
+        except Exception as e:
+            print(f"  ❌ HRD-Net [{api_name}] 오류: {e}")
+
+    return programs
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
